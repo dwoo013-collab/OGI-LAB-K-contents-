@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K-콘텐츠 정책 온톨로지 대시보드</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --surface-2: #f1efe8;
+    --text: #2c2c2a;
+    --text-2: #5f5e5a;
+    --text-3: #888780;
+    --border: rgba(0,0,0,0.1);
+    --border-2: rgba(0,0,0,0.18);
+    --accent: #534AB7;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18;
+      --surface: #24241f;
+      --surface-2: #2e2e28;
+      --text: #e8e6dc;
+      --text-2: #b4b2a9;
+      --text-3: #888780;
+      --border: rgba(255,255,255,0.1);
+      --border-2: rgba(255,255,255,0.2);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    background: var(--bg); color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 24px 20px 64px; }
+  header { padding: 8px 0 20px; border-bottom: 0.5px solid var(--border); margin-bottom: 24px; }
+  h1 { font-size: 22px; font-weight: 500; margin: 0 0 4px; }
+  .sub { font-size: 13px; color: var(--text-2); margin: 0; }
+  .sub b { font-weight: 500; color: var(--text); }
+
+  .tabs { display: flex; gap: 4px; margin: 20px 0 24px; border-bottom: 0.5px solid var(--border); }
+  .tab {
+    background: transparent; border: none; padding: 10px 16px;
+    font: inherit; font-size: 14px; color: var(--text-2);
+    cursor: pointer; border-bottom: 2px solid transparent;
+    margin-bottom: -0.5px;
+  }
+  .tab.on { color: var(--text); border-bottom-color: var(--accent); font-weight: 500; }
+  .tab:hover { color: var(--text); }
+
+  .panel { display: none; }
+  .panel.on { display: block; }
+
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap: 8px; margin-bottom: 20px; }
+  .metric { background: var(--surface-2); border-radius: var(--radius); padding: 12px 14px; }
+  .metric-label { font-size: 11px; color: var(--text-2); margin-bottom: 2px; }
+  .metric-val { font-size: 22px; font-weight: 500; }
+
+  .section { margin: 0 0 32px; }
+  .section-h { font-size: 14px; font-weight: 500; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+  .chip { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); font-weight: 400; }
+
+  .cls-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 8px; }
+  .cls-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .cls-name { font-size: 13px; font-weight: 500; }
+  .cls-count { font-size: 11px; color: var(--text-2); margin-bottom: 8px; }
+  .cls-bar { height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+  .cls-bar-fill { height: 100%; }
+  .cls-top { font-size: 11px; color: var(--text-2); line-height: 1.5; }
+
+  .subbar-row { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 4px; cursor: pointer; border-radius: 4px; }
+  .subbar-row:hover, .subbar-row.active { background: var(--surface-2); }
+  .subbar-name { min-width: 100px; }
+  .subbar-kor { color: var(--text-2); font-size: 11px; min-width: 56px; }
+  .subbar-track { flex: 1; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+  .subbar-fill { height: 100%; border-radius: 4px; }
+  .subbar-val { min-width: 32px; text-align: right; font-size: 11px; color: var(--text-2); }
+
+  .detail-box { margin-top: 10px; padding: 10px 12px; background: var(--surface-2); border-radius: var(--radius); font-size: 12px; line-height: 1.6; display: none; }
+  .detail-box.on { display: block; }
+  .detail-desc { color: var(--text-2); margin-bottom: 6px; }
+  .detail-ex { margin: 0; padding: 0; list-style: none; }
+  .detail-ex li { padding: 4px 0; border-top: 0.5px solid var(--border); }
+  .detail-ex li:first-child { border-top: none; }
+  .detail-ex-n { display: inline-block; font-size: 10px; color: var(--text-3); margin-right: 6px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+  .col-h { font-size: 12px; color: var(--text-2); margin-bottom: 6px; font-weight: 500; }
+  .col-h em { font-style: normal; font-size: 10px; color: var(--text-3); font-weight: 400; margin-left: 4px; }
+
+  .edge-picker { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .edge-btn { font-size: 12px; padding: 5px 12px; border-radius: var(--radius); border: 0.5px solid var(--border); background: transparent; cursor: pointer; color: var(--text-2); font-family: inherit; }
+  .edge-btn.on { background: var(--surface-2); color: var(--text); border-color: var(--border-2); }
+
+  #net-svg { width: 100%; height: 460px; background: var(--surface-2); border-radius: var(--radius); display: block; }
+  .net-node text { font-size: 11px; pointer-events: none; fill: var(--text); }
+  .net-link { stroke-opacity: .4; }
+  .net-legend { display: flex; gap: 14px; font-size: 11px; color: var(--text-2); margin-top: 8px; flex-wrap: wrap; }
+  .net-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  .sk-controls { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px; color: var(--text-2); }
+  .sk-controls label { display: flex; align-items: center; gap: 8px; }
+  .sk-controls input[type=range] { width: 140px; accent-color: var(--accent); }
+  .sk-controls .val { min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text); font-weight: 500; }
+  .sk-col-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-2); margin-bottom: 6px; padding: 0 4px; }
+  .sk-col-labels span { font-weight: 500; color: var(--text); }
+  .sk-col-labels em { font-style: normal; font-weight: 400; color: var(--text-3); }
+  #sk-svg { width: 100%; height: 560px; display: block; background: var(--surface-2); border-radius: var(--radius); }
+  .sk-node rect { cursor: pointer; transition: opacity .15s; }
+  .sk-node text { font-size: 12px; fill: var(--text); pointer-events: none; }
+  .sk-node text.kor { font-size: 10px; fill: var(--text-2); }
+  .sk-link { fill: none; transition: stroke-opacity .15s; }
+  .sk-link.dim { stroke-opacity: .08; }
+  .sk-link.hi { stroke-opacity: .6; }
+  .sk-node.dim rect { opacity: .25; }
+  .sk-tip { display: none; background: var(--surface); border: 0.5px solid var(--border-2); border-radius: var(--radius); padding: 10px 12px; font-size: 12px; margin-top: 10px; line-height: 1.6; }
+  .sk-tip.on { display: block; }
+  .sk-tip strong { font-weight: 500; }
+
+  footer { font-size: 11px; color: var(--text-3); padding-top: 14px; margin-top: 32px; border-top: 0.5px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>K-콘텐츠 정책 온톨로지 대시보드</h1>
+  <p class="sub">1,178개 정책 문장 · 13개 자료 · 5개 최상위 클래스 · 60개 서브클래스</p>
+</header>
+
+<div class="metric-grid">
+  <div class="metric"><div class="metric-label">문장</div><div class="metric-val">1,178</div></div>
+  <div class="metric"><div class="metric-label">Classes</div><div class="metric-val">5</div></div>
+  <div class="metric"><div class="metric-label">Subclasses</div><div class="metric-val">60</div></div>
+  <div class="metric"><div class="metric-label">출처</div><div class="metric-val">13</div></div>
+</div>
+
+<div class="tabs" role="tablist">
+  <button class="tab on" data-panel="overview">① 분류 체계</button>
+  <button class="tab" data-panel="network">② 동시 출현 네트워크</button>
+  <button class="tab" data-panel="sankey">③ Actor→Activity→Artifact Sankey</button>
+</div>
+
+<!-- =================== PANEL 1: OVERVIEW =================== -->
+<div class="panel on" id="panel-overview">
+
+  <div class="section">
+    <div class="section-h">최상위 클래스 <span class="chip">Entity → Subclass</span></div>
+    <div class="cls-grid" id="cls-grid"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-h">클래스별 Subclass 분포 <span class="chip">항목 클릭 → 정의·예시 문장</span></div>
+    <div class="two-col">
+      <div>
+        <div class="col-h">Actors <em>(행위 주체)</em></div>
+        <div id="bars-Actors"></div>
+        <div class="detail-box" id="det-Actors"></div>
+      </div>
+      <div>
+        <div class="col-h">Artifacts <em>(산출물·자산)</em></div>
+        <div id="bars-Artifacts"></div>
+        <div class="detail-box" id="det-Artifacts"></div>
+      </div>
+    </div>
+    <div class="two-col" style="margin-top: 20px;">
+      <div>
+        <div class="col-h">Activities <em>(활동)</em></div>
+        <div id="bars-Activities"></div>
+        <div class="detail-box" id="det-Activities"></div>
+      </div>
+      <div>
+        <div class="col-h">Institutions <em>(제도)</em></div>
+        <div id="bars-Institutions"></div>
+        <div class="detail-box" id="det-Institutions"></div>
+      </div>
+    </div>
+    <div style="margin-top: 20px;">
+      <div class="col-h">Relations <em>(관계 유형)</em></div>
+      <div id="bars-Relations"></div>
+      <div class="detail-box" id="det-Relations"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== PANEL 2: NETWORK =================== -->
+<div class="panel" id="panel-network">
+  <div class="section">
+    <div class="section-h">동시 출현 네트워크 <span class="chip">힘 기반 레이아웃 · 드래그 가능</span></div>
+    <div class="edge-picker">
+      <button class="edge-btn on" data-edge="actor_artifact">Actor × Artifact</button>
+      <button class="edge-btn" data-edge="actor_activity">Actor × Activity</button>
+      <button class="edge-btn" data-edge="activity_artifact">Activity × Artifact</button>
+    </div>
+    <svg id="net-svg" role="img" aria-label="Co-occurrence network"></svg>
+    <div class="net-legend">
+      <span><i style="background:#7F77DD"></i>Actor</span>
+      <span><i style="background:#1D9E75"></i>Artifact</span>
+      <span><i style="background:#EF9F27"></i>Activity</span>
+      <span style="margin-left:auto">노드 크기 ∝ 등장 빈도 · 선 굵기 ∝ 공출현</span>
+    </div>
+  </div>
+</div>
+
+<!-- =================== PANEL 3: SANKEY =================== -->
+<div class="panel" id="panel-sankey">
+  <div class="section">
+    <div class="section-h">Actor → Activity → Artifact 흐름 <span class="chip">누가 무엇을 하는가, 무엇에 대해</span></div>
+    <div class="sk-controls">
+      <label>최소 연결 강도 <input type="range" id="sk-thr" min="5" max="40" value="10" step="1"><span class="val" id="sk-thr-v">10</span></label>
+      <label>링크 표시 수 <input type="range" id="sk-top" min="10" max="60" value="40" step="5"><span class="val" id="sk-top-v">40</span></label>
+      <span style="margin-left:auto;font-size:11px;color:var(--text-3)">노드 클릭 → 경로 강조</span>
+    </div>
+    <div class="sk-col-labels">
+      <span>Actors <em>누가</em></span>
+      <span>Activities <em>무엇을 하는가</em></span>
+      <span>Artifacts <em>무엇에 대해</em></span>
+    </div>
+    <svg id="sk-svg" role="img" aria-label="Sankey diagram: Actor to Activity to Artifact"></svg>
+    <div class="sk-tip" id="sk-tip"></div>
+    <div style="font-size:11px;color:var(--text-3);margin-top:10px">
+      링크 두께 ∝ 문장 내 공출현 수 · 노드 높이 ∝ 유입·유출량
+    </div>
+  </div>
+</div>
+
+<footer>
+  출처: 2차 K-콘텐츠 정책키워드 파일 · 1,178 문장 · 13개 자료 (제3차 콘텐츠산업 진흥 기본계획, 콘텐츠산업백서, UNCTAD K-Content Goes Global, World Bank CCC 등)
+</footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.3/d3-sankey.min.js"></script>
+<script>
+/* ============ DATA ============ */
+const DATA = {"totals":{"Institutions":456,"Actors":1217,"Activities":1465,"Artifacts":1470,"Relations":1178},"sentence_count":1178,"subclasses":{"Institutions":{"Strategy":128,"Copyright":69,"Law":67,"Rule":60,"Deregulation":38,"Finance":25,"Fund":22,"Tax":16,"Guarantee":11,"Governance":10,"Standard":6,"Agreement":4},"Actors":{"country":457,"company":223,"labor":122,"individual":116,"gov":114,"public_agency":46,"global_company":39,"platform":27,"city":20,"academia":17,"global_org":15,"governance":8,"star":8,"event":5},"Activities":{"Planning":357,"Performance":166,"Consumption":152,"Export":133,"Production":119,"Investment":105,"Operation":97,"Survey":82,"Training":73,"Distribution":60,"Cooperation":47,"Regulation":37,"Promotion":31,"RnD":6},"Artifacts":{"Genre":493,"Format":266,"Brand":214,"Platform":156,"IP":95,"AI":77,"Infra":68,"Technology":46,"Data":17,"Fandom":14,"Indicator":11,"XR":8,"Product":5},"Relations":{"Competitive":299,"Enabling":223,"Causal":175,"Complementary":166,"Regulatory":138,"Cooperative":105,"Dependent":54,"Substitutive":18}},"meta":{"Entity:Subclass":{"kor":"","desc":"Description"},"Institutions:Agreement":{"kor":"협약","desc":"계약·협약·MOU 등 당사자 간 합의에 기반한 제도적 약정"},"Institutions:Copyright":{"kor":"저작권","desc":"저작권·저작물·침해 등 지식재산 보호를 위한 법적·제도적 권리 체계"},"Institutions:Deregulation":{"kor":"규제완화","desc":"규제 완화·폐지·자율화 등 기존 제한을 축소하는 제도 변화"},"Institutions:Finance":{"kor":"금융","desc":"금융·대출·융자·이자·보조금 등 자금 조달 및 운용 수단"},"Institutions:Fund":{"kor":"기금","desc":"펀드·출자·기금 등 목적성 재원 조성 제도적 수단"},"Institutions:Governance":{"kor":"거버넌스","desc":"위원회·협의회·거버넌스 등 정책 의사결정 및 운영 기구"},"Institutions:Guarantee":{"kor":"보증","desc":"보증·보험 등 리스크 분담을 위한 신용 보강 장치"},"Institutions:Law":{"kor":"법률","desc":"법률 제정·개정 등 입법 기반의 제도적 근거"},"Institutions:Rule":{"kor":"규칙","desc":"규제·기준·등급·심의 등 행정적 규율 및 분류 기준"},"Institutions:Standard":{"kor":"표준","desc":"표준계약서·정가제 등 산업 내 통일된 거래 규범"},"Institutions:Strategy":{"kor":"전략","desc":"계획·전략·정책·목표·비전·예산·재원 등 정부 정책 방향 설정"},"Institutions:Tax":{"kor":"조세","desc":"세액공제·세제·인센티브·환급 등 조세 기반 인센티브 수단"},"Actors:academia":{"kor":"학계","desc":"대학·아카데미·대학원·연구소 등 교육·연구 기관"},"Actors:city":{"kor":"도시","desc":"부산·광주·전주·경주 등 창의도시·문화도시 맥락의 도시 주체"},"Actors:company":{"kor":"기업","desc":"기업·제작사·방송사·사업체·사업자·상장사·스타트업·투자자 등 국내 구체적 사업 주체"},"Actors:country":{"kor":"국가","desc":"부산국제영화제·광주비엔날레·K-EXPO·빅카인즈 등 행사·페스티벌·이벤트"},"Actors:event":{"kor":"행사","desc":"미국·일본·중국·인도·프랑스·영국·한국·대만·싱가포르 등 개별 국가"},"Actors:global_company":{"kor":"글로벌기업","desc":"넷플릭스·아마존·디즈니·애플·구글 등 글로벌 기업"},"Actors:global_org":{"kor":"국제기구","desc":"UNESCO·WIPO·EU·UNCTAD·BFI 등 국제기구·정부간기구"},"Actors:gov":{"kor":"정부","desc":"정부·문체부·부처·대통령·국회·방통위·지자체 등 정책 수립·집행 공공 주체"},"Actors:governance":{"kor":"위원회","desc":"콘텐츠산업진흥위원회·한류협력위원회·분쟁조정위원회 등 정책 의사결정 위원회체"},"Actors:individual":{"kor":"소비자","desc":"소비자·이용자·관객·팬·한류팬·국민·관광객·외국인·게이머·학습자 등 콘텐츠 최종 수요자"},"Actors:labor":{"kor":"인력","desc":"인력·인재·종사자·창작자·작가·감독·디자이너·크리에이터·전문인력 등 산업 내 인적자원"},"Actors:platform":{"kor":"플랫폼","desc":"유튜브·네이버·카카오·카카오픽코마·스포티파이·빅카인즈 등 구체적 플랫폼 사업자"},"Actors:public_agency":{"kor":"공공기관","desc":"한국콘텐츠진흥원·영화진흥위원회·저작권보호원·한국저작권위원회·KOFICE·세종학당 등 정책 집행 공공기관"},"Actors:star":{"kor":"스타","desc":"BTS·이민호·블랙핑크·손흥민 등 한류 스타·셀럽·아이돌·아티스트"},"Activities:Consumption":{"kor":"소비","desc":"소비·이용·시청·관람·구매·경험·공연 관람·접촉 등 콘텐츠 향유 행위"},"Activities:Cooperation":{"kor":"협력","desc":"협력·연계·공조·합동·MOU·파트너십·콜라보 등 기관 간 협업 행위"},"Activities:Distribution":{"kor":"유통","desc":"유통·배급·스트리밍·라이선싱·거래·판매·상영 등 콘텐츠 전달 행위"},"Activities:Export":{"kor":"수출","desc":"수출·해외진출·현지화 등 해외 시장 진출 행위"},"Activities:Investment":{"kor":"투자","desc":"투자·조성·출자·공급·지원·예산·펀드 등 자본 투입 행위"},"Activities:Operation":{"kor":"운영","desc":"운영·관리·고용·참여·성장·증가·감소·매출·수익·경쟁 등 조직 운영 및 사업 수행"},"Activities:Performance":{"kor":"실적","desc":"성장·증가·감소·매출·수익·적자·흑자·편중·위축·정체·점유율 등 사업 실적 변동 및 산업 추이"},"Activities:Planning":{"kor":"기획","desc":"수립·구축·도입·대응·해소·개선·확립·개정·강화·폐지·개편 등 정책 기획·설계"},"Activities:Production":{"kor":"제작","desc":"제작·창작·기획·개발·확보·창출 등 콘텐츠 생산 행위"},"Activities:Promotion":{"kor":"홍보","desc":"홍보·마케팅·확산·보급·인지도 제고 등 인지도 확대 행위"},"Activities:Regulation":{"kor":"규제","desc":"보호·규율·심의·단속·차단·근절 등 질서 유지 행위"},"Activities:RnD":{"kor":"연구개발","desc":"R&D·연구·기술개발 등 기술 혁신 행위"},"Activities:Survey":{"kor":"조사","desc":"조사·분석·통계·평가·모니터링·호감도·경험률·인기도 측정 등 데이터 수집·분석"},"Activities:Training":{"kor":"교육","desc":"양성·교육·육성·훈련·학습 등 인적자원 역량 강화 행위"},"Artifacts:AI":{"kor":"인공지능","desc":"AI·인공지능 등 인공지능 기술 기반 산출물"},"Artifacts:Brand":{"kor":"브랜드","desc":"한류·K-콘텐츠·K-팝·K-뷰티·K-푸드·한국산·소프트파워 등 국가 브랜드 자산"},"Artifacts:Data":{"kor":"데이터","desc":"데이터·빅데이터·DB·정보 등 디지털 정보 자원"},"Artifacts:Fandom":{"kor":"팬덤","desc":"팬덤·팬 문화·동호회·커뮤니티 등 콘텐츠 수용자 기반 문화 자산"},"Artifacts:Format":{"kor":"산업구조","desc":"콘텐츠산업·생태계·밸류체인·비즈니스모델·거버넌스 등 산업 구조적 틀"},"Artifacts:Genre":{"kor":"장르","desc":"게임·영화·드라마·웹툰·음악·방송·패션·뷰티·관광·공연·만화·애니·출판·캐릭터·스포츠 등 콘텐츠 장르"},"Artifacts:IP":{"kor":"지식재산","desc":"IP·저작권·라이선싱·저작물·지식재산·퍼블리시티권 등 지적재산 기반 자산"},"Artifacts:Indicator":{"kor":"지표","desc":"매출·호감도·경험률·생산지수·점유율·구매의향·추천의향 등 성과 측정 지표"},"Artifacts:Infra":{"kor":"인프라","desc":"스튜디오·클러스터·인프라·거점·센터·극장·비엔날레·단지 등 물리적 제작·문화 기반시설"},"Artifacts:Platform":{"kor":"플랫폼","desc":"플랫폼·디지털·OTT·미디어·SNS·숏폼 등 콘텐츠 유통 기술 기반"},"Artifacts:Product":{"kor":"상품","desc":"화장품·식품·소비재·패션상품·디저트·오디오북 등 한류 연관 실물 상품"},"Artifacts:Technology":{"kor":"기술","desc":"기술·생성형 AI·ICT·CG·VFX·블록체인·클라우드 등 산업 활용 핵심 기술"},"Artifacts:XR":{"kor":"확장현실","desc":"메타버스·XR·AR·VR 등 확장현실 기술 기반 콘텐츠"},"Relations:Competitive":{"kor":"경쟁","desc":"경쟁·격차·우위·도약·선도·비교·순위·점유율 등 경쟁 관계 (A vs B)"},"Relations:Cooperative":{"kor":"협력","desc":"협력·연계·공조·파트너십·MOU·제휴·교류 등 협력 관계 (A + B)"},"Relations:Complementary":{"kor":"보완","desc":"보완·연관·확산·대중화·시너지·융합·선순환·유지 등 보완/강화 관계 (A → +B)"},"Relations:Substitutive":{"kor":"대체","desc":"대체·전환·이탈·잠식·재편·축소·감소·침체 등 대체 관계 (A → -B)"},"Relations:Dependent":{"kor":"의존","desc":"의존·종속·지배·편중·집중·독과점·양극화·불균형 등 의존/종속 관계 (A ⊂ B)"},"Relations:Regulatory":{"kor":"규율","desc":"규제·보호·법·제도·개정·인증·심의·단속·완화·폐지 등 규율 관계 (A regulates B)"},"Relations:Causal":{"kor":"인과","desc":"효과·영향·기여·원인·결과·인식·요인·장애·문제 등 인과 관계 (A causes B)"},"Relations:Enabling":{"kor":"촉진","desc":"지원·촉진·기반·육성·활성화·진흥·투자·예산·강화·확대 등 지원/촉진 관계 (A enables B)"}},"edges":{"actor_artifact":[["country","Genre",102],["country","Brand",73],["company","Genre",71],["company","Format",69],["individual","Genre",64],["labor","Genre",42],["country","Format",33],["gov","Genre",28],["labor","Format",28],["individual","Brand",27],["gov","Format",26],["company","IP",24],["company","Platform",20],["global_company","Platform",19],["gov","Brand",18],["labor","Platform",18],["company","Infra",18],["labor","AI",16],["company","AI",16],["company","Technology",14],["individual","Platform",12],["platform","Platform",12],["gov","Platform",11],["individual","Fandom",11],["global_company","Brand",10],["public_agency","Brand",10],["country","Platform",10],["public_agency","Format",9],["public_agency","Genre",8],["city","Genre",8],["country","Infra",7],["labor","Infra",7],["company","Brand",7],["country","IP",7],["gov","IP",7],["individual","Format",7],["platform","AI",7],["star","Genre",7],["governance","Format",6],["labor","Technology",6]],"actor_activity":[["company","Planning",57],["gov","Planning",54],["country","Consumption",45],["individual","Consumption",41],["company","Performance",38],["country","Planning",38],["country","Export",37],["company","Production",36],["company","Investment",33],["labor","Training",27],["country","Performance",27],["labor","Planning",27],["company","Operation",24],["labor","Operation",24],["country","Survey",24],["individual","Planning",20],["labor","Production",19],["public_agency","Planning",18],["gov","Investment",16],["company","Export",14],["gov","Cooperation",12],["country","Promotion",12],["country","Cooperation",11],["individual","Operation",11],["company","Distribution",11],["individual","Performance",10],["company","Survey",10],["city","Planning",9],["country","Operation",9],["company","Consumption",8],["country","Investment",8],["country","Training",8],["company","Training",8],["academia","Training",8],["country","Production",8],["platform","Performance",8],["public_agency","Survey",8],["individual","Distribution",8],["governance","Planning",7],["gov","Operation",7]],"activity_artifact":[["Planning","Genre",102],["Planning","Format",82],["Consumption","Genre",73],["Performance","Genre",61],["Performance","Format",50],["Export","Genre",49],["Production","Genre",48],["Planning","Brand",41],["Consumption","Brand",41],["Planning","Platform",40],["Operation","Genre",38],["Planning","Infra",35],["Planning","AI",33],["Export","Brand",32],["Survey","Genre",32],["Investment","Format",31],["Investment","Genre",31],["Operation","Format",30],["Export","Format",30],["Survey","Brand",29],["Performance","Brand",27],["Planning","IP",27],["Production","IP",22],["Consumption","Platform",21],["Performance","Platform",19],["Training","Genre",18],["Production","Format",18],["Cooperation","Format",17],["Distribution","Genre",17],["Distribution","Platform",16],["Planning","Technology",16],["Investment","Brand",15],["Production","AI",15],["Production","Platform",14],["Distribution","Brand",14],["Cooperation","Genre",13],["Promotion","Brand",13],["Distribution","Format",13],["Survey","Format",13],["Consumption","Format",11]]},"examples":{"Institutions:Copyright":[{"n":1,"t":"AI 시대 저작권 활용 규범을 정립하기 위해 생성형 AI 산출물 표시제 도입, AI 학습데이터 목록 개요 공개 등 AI-저작권 제도개선을 추진한"},{"n":70,"t":"콘텐츠·이용자 보호 및 유통 기술이 디지털 워터마크에서 객체 위변조 방지를 거쳐 AI 기반 불법 저작물 자동 탐지 및 유사도 분석 기술로 단계적"},{"n":82,"t":"K-콘텐츠 글로벌 위상에 걸맞은 저작권 보호체계 구축을 위해 저작권 불법복제물 이용률을 19.2%('23년)에서 17.0%('27년)으로 낮추는"}],"Institutions:Law":[{"n":1,"t":"AI 시대 저작권 활용 규범을 정립하기 위해 생성형 AI 산출물 표시제 도입, AI 학습데이터 목록 개요 공개 등 AI-저작권 제도개선을 추진한"},{"n":4,"t":"콘텐츠 분야의 공정한 유통환경 조성 및 상생협력을 위한 문화산업공정유통법 제정을 추진한다"},{"n":11,"t":"콘텐츠분쟁조정위원회의 분쟁 해결 기능을 강화하기 위해 합의권고, 직권조정, 집단분쟁 조정 등을 도입하는 콘텐츠산업 진흥법 개정을 추진한다"}],"Activities:Planning":[{"n":1,"t":"AI 시대 저작권 활용 규범을 정립하기 위해 생성형 AI 산출물 표시제 도입, AI 학습데이터 목록 개요 공개 등 AI-저작권 제도개선을 추진한"},{"n":5,"t":"방송광고 제도 개선을 위해 광고 유형을 7개에서 3개로 단순화하고, 프로그램 시간의 20%로 제한된 광고시간 총량 규제를 완화한다"},{"n":6,"t":"OTT콘텐츠 자체등급분류 도입('23.3월)에 이어, 예고편 등 OTT 광고·선전물에 대해서도 사업자 자율심의를 도입하여 사전 심의 부담을 완화"}],"Artifacts:AI":[{"n":1,"t":"AI 시대 저작권 활용 규범을 정립하기 위해 생성형 AI 산출물 표시제 도입, AI 학습데이터 목록 개요 공개 등 AI-저작권 제도개선을 추진한"},{"n":36,"t":"AI, 실감기술 등 신기술과 콘텐츠를 연계한 융복합 콘텐츠 창·제작 전문인재를 양성하기 위해 뉴콘텐츠 아카데미를 운영한다('24년 200명)"},{"n":61,"t":"AI 기술 보편화에 따라 콘텐츠 생태계 전반에 급격한 기술혁신이 진행되며, AI 기술은 생성형 AI에서 멀티모달 AI를 거쳐 범용 인공지능으로 "}],"Relations:Complementary":[{"n":1,"t":"AI 시대 저작권 활용 규범을 정립하기 위해 생성형 AI 산출물 표시제 도입, AI 학습데이터 목록 개요 공개 등 AI-저작권 제도개선을 추진한"},{"n":13,"t":"K-콘텐츠 수출 총괄 지원 및 연관산업 파급효과 확대를 위해 문체부장관을 위원장으로 하는 K-콘텐츠 수출협의회를 운영하며, 12개 부처·청 차관"},{"n":14,"t":"영상콘텐츠 간 경계가 모호해지는 산업 트렌드에 대응하여 '영화'에 대한 재정의 및 규율체계 개선을 위해 영화비디오법을 개정하고, 영화-OTT 콘"}],"Institutions:Finance":[{"n":2,"t":"EU는 문화·창조 산업 부문의 경쟁력 강화 및 경제적 가치 창출을 위해 Creative Europe Program('21~'27)을 통해 24억"},{"n":8,"t":"콘텐츠 기업의 금융비용 경감을 위해 대출 이자 일부(2.5%p)를 지원하며, '24~'27년 약 7,000억원 규모의 대출 이자를 지원한다"},{"n":8,"t":"콘텐츠 기업의 금융비용 경감을 위해 대출 이자 일부(2.5%p)를 지원하며, '24~'27년 약 7,000억원 규모의 대출 이자를 지원한다"}],"Actors:global_org":[{"n":2,"t":"EU는 문화·창조 산업 부문의 경쟁력 강화 및 경제적 가치 창출을 위해 Creative Europe Program('21~'27)을 통해 24억"},{"n":73,"t":"한국의 AI 분야 기술격차는 미국(0년) 대비 1.3년으로, 중국(0.8년)·EU(1.0년)보다 뒤처져 있어 선진국과의 기술격차 해소가 필요하다"},{"n":279,"t":"영국 독립 영화 부문의 해외 개발·제작·배포·홍보 기회 진흥을 위해 DCMS가 예산을 지원하고 BFI가 행정을 담당하는 글로벌 스크린 펀드(UK"}],"Activities:Investment":[{"n":2,"t":"EU는 문화·창조 산업 부문의 경쟁력 강화 및 경제적 가치 창출을 위해 Creative Europe Program('21~'27)을 통해 24억"},{"n":8,"t":"콘텐츠 기업의 금융비용 경감을 위해 대출 이자 일부(2.5%p)를 지원하며, '24~'27년 약 7,000억원 규모의 대출 이자를 지원한다"},{"n":15,"t":"콘텐츠산업에 대한 범정부적 지원이 부족한 상황으로, 콘텐츠산업 예산은 정부 전체 예산의 0.13%에 불과하다(5년간 3,134조원 중 4.2조원"}],"Artifacts:Platform":[{"n":2,"t":"EU는 문화·창조 산업 부문의 경쟁력 강화 및 경제적 가치 창출을 위해 Creative Europe Program('21~'27)을 통해 24억"},{"n":6,"t":"OTT콘텐츠 자체등급분류 도입('23.3월)에 이어, 예고편 등 OTT 광고·선전물에 대해서도 사업자 자율심의를 도입하여 사전 심의 부담을 완화"},{"n":29,"t":"OTT 산업의 성장에 대응하여 기획-제작-비즈니스 등 석·박사급 창제작 전문인력을 양성하기 위해 OTT 대학원을 운영한다('24년 수도권 2개)"}],"Relations:Competitive":[{"n":2,"t":"EU는 문화·창조 산업 부문의 경쟁력 강화 및 경제적 가치 창출을 위해 Creative Europe Program('21~'27)을 통해 24억"},{"n":16,"t":"콘텐츠산업에 대한 과감한 지원을 통해 산업 재도약 기반을 마련하고자 콘텐츠 예산 1조원을 돌파하고 역대 최대규모 정책금융 1조 7,400억원을 "},{"n":20,"t":"글로벌 콘텐츠 경쟁 우위 선점을 위해 '27년까지 총 5조원 대 콘텐츠 정책금융을 공급한다(국내 정책펀드 3.4조원, 완성보증·이차보전 1.6조"}],"Institutions:Deregulation":[{"n":3,"t":"게임물 이용 시간제한에 관한 게임시간선택제 의무조항을 폐지하고, 게임사가 자체적으로 운영할 수 있도록 규제체계를 개선한다"},{"n":3,"t":"게임물 이용 시간제한에 관한 게임시간선택제 의무조항을 폐지하고, 게임사가 자체적으로 운영할 수 있도록 규제체계를 개선한다"},{"n":5,"t":"방송광고 제도 개선을 위해 광고 유형을 7개에서 3개로 단순화하고, 프로그램 시간의 20%로 제한된 광고시간 총량 규제를 완화한다"}],"Institutions:Rule":[{"n":3,"t":"게임물 이용 시간제한에 관한 게임시간선택제 의무조항을 폐지하고, 게임사가 자체적으로 운영할 수 있도록 규제체계를 개선한다"},{"n":5,"t":"방송광고 제도 개선을 위해 광고 유형을 7개에서 3개로 단순화하고, 프로그램 시간의 20%로 제한된 광고시간 총량 규제를 완화한다"},{"n":6,"t":"OTT콘텐츠 자체등급분류 도입('23.3월)에 이어, 예고편 등 OTT 광고·선전물에 대해서도 사업자 자율심의를 도입하여 사전 심의 부담을 완화"}],"Actors:company":[{"n":3,"t":"게임물 이용 시간제한에 관한 게임시간선택제 의무조항을 폐지하고, 게임사가 자체적으로 운영할 수 있도록 규제체계를 개선한다"},{"n":6,"t":"OTT콘텐츠 자체등급분류 도입('23.3월)에 이어, 예고편 등 OTT 광고·선전물에 대해서도 사업자 자율심의를 도입하여 사전 심의 부담을 완화"},{"n":7,"t":"게임물 등급분류를 민간에 단계적으로 이양하고, 등급분류 기준을 글로벌 스탠다드에 맞게 개선하여 민간부문의 자율성을 확대한다"}],"Activities:Consumption":[{"n":3,"t":"게임물 이용 시간제한에 관한 게임시간선택제 의무조항을 폐지하고, 게임사가 자체적으로 운영할 수 있도록 규제체계를 개선한다"},{"n":72,"t":"콘텐츠 양적 확대 및 개인화된 콘텐츠 소비·공유에 따라 세계 콘텐츠산업의 구조가 '플랫폼 중심'에서 '콘텐츠 중심'으로 이동하고 있다"},{"n":75,"t":"영화 관객 수 회복이 팬데믹 이전의 56.6%에 불과한 반면, 국내 OTT 이용률은 '18년 42.7%에서 '23년 77%로 지속 상승하고 있다"}],"Activities:Operation":[{"n":3,"t":"게임물 이용 시간제한에 관한 게임시간선택제 의무조항을 폐지하고, 게임사가 자체적으로 운영할 수 있도록 규제체계를 개선한다"},{"n":13,"t":"K-콘텐츠 수출 총괄 지원 및 연관산업 파급효과 확대를 위해 문체부장관을 위원장으로 하는 K-콘텐츠 수출협의회를 운영하며, 12개 부처·청 차관"},{"n":13,"t":"K-콘텐츠 수출 총괄 지원 및 연관산업 파급효과 확대를 위해 문체부장관을 위원장으로 하는 K-콘텐츠 수출협의회를 운영하며, 12개 부처·청 차관"}],"Artifacts:Genre":[{"n":3,"t":"게임물 이용 시간제한에 관한 게임시간선택제 의무조항을 폐지하고, 게임사가 자체적으로 운영할 수 있도록 규제체계를 개선한다"},{"n":5,"t":"방송광고 제도 개선을 위해 광고 유형을 7개에서 3개로 단순화하고, 프로그램 시간의 20%로 제한된 광고시간 총량 규제를 완화한다"},{"n":7,"t":"게임물 등급분류를 민간에 단계적으로 이양하고, 등급분류 기준을 글로벌 스탠다드에 맞게 개선하여 민간부문의 자율성을 확대한다"}],"Relations:Regulatory":[{"n":3,"t":"게임물 이용 시간제한에 관한 게임시간선택제 의무조항을 폐지하고, 게임사가 자체적으로 운영할 수 있도록 규제체계를 개선한다"},{"n":5,"t":"방송광고 제도 개선을 위해 광고 유형을 7개에서 3개로 단순화하고, 프로그램 시간의 20%로 제한된 광고시간 총량 규제를 완화한다"},{"n":6,"t":"OTT콘텐츠 자체등급분류 도입('23.3월)에 이어, 예고편 등 OTT 광고·선전물에 대해서도 사업자 자율심의를 도입하여 사전 심의 부담을 완화"}],"Activities:Cooperation":[{"n":4,"t":"콘텐츠 분야의 공정한 유통환경 조성 및 상생협력을 위한 문화산업공정유통법 제정을 추진한다"},{"n":30,"t":"콘텐츠 기술 고급인력을 양성하기 위해 산학연 연계 프로젝트를 기반으로 기술개발과 동시에 석·박사급 문화기술 R&D 인력을 양성한다('24년 90"},{"n":33,"t":"콘텐츠 산업정책을 총괄하는 추진체계로서 콘산위-문체부-공공기관(한국콘텐츠진흥원, 영화진흥위원회, 게임위원회 등)으로 이어지는 지원체계를 구축한다"}],"Artifacts:Format":[{"n":4,"t":"콘텐츠 분야의 공정한 유통환경 조성 및 상생협력을 위한 문화산업공정유통법 제정을 추진한다"},{"n":8,"t":"콘텐츠 기업의 금융비용 경감을 위해 대출 이자 일부(2.5%p)를 지원하며, '24~'27년 약 7,000억원 규모의 대출 이자를 지원한다"},{"n":9,"t":"현행 완성보증을 '문화산업보증(가칭)'으로 확대 개편하여, 기획·개발부터 수출까지 콘텐츠 밸류체인 전 단계에 보증을 공급한다('24~'27년 약"}],"Relations:Cooperative":[{"n":4,"t":"콘텐츠 분야의 공정한 유통환경 조성 및 상생협력을 위한 문화산업공정유통법 제정을 추진한다"},{"n":22,"t":"K-콘텐츠·미디어 기업의 전략적 육성을 위해 민관 공동 출자를 통한 전략펀드를 조성하며, 4년간('24~'27년) 총 1,350억원 출자로 약 "},{"n":30,"t":"콘텐츠 기술 고급인력을 양성하기 위해 산학연 연계 프로젝트를 기반으로 기술개발과 동시에 석·박사급 문화기술 R&D 인력을 양성한다('24년 90"}],"Institutions:Guarantee":[{"n":9,"t":"현행 완성보증을 '문화산업보증(가칭)'으로 확대 개편하여, 기획·개발부터 수출까지 콘텐츠 밸류체인 전 단계에 보증을 공급한다('24~'27년 약"},{"n":20,"t":"글로벌 콘텐츠 경쟁 우위 선점을 위해 '27년까지 총 5조원 대 콘텐츠 정책금융을 공급한다(국내 정책펀드 3.4조원, 완성보증·이차보전 1.6조"},{"n":103,"t":"글로벌 진출 어려움 해소를 위해 수출 이행자금 및 서비스종합보험(대금 미회수 리스크 담보) 지원 등 수출 맞춤형 보증을 제공하는 수출 특화보증을"}],"Relations:Enabling":[{"n":9,"t":"현행 완성보증을 '문화산업보증(가칭)'으로 확대 개편하여, 기획·개발부터 수출까지 콘텐츠 밸류체인 전 단계에 보증을 공급한다('24~'27년 약"},{"n":12,"t":"영상콘텐츠 제작비 세액공제를 확대하여 기본공제율을 대기업 5%, 중견기업 10%, 중소기업 15%로 상향하고, 국내 지출 비중이 높은 콘텐츠에 "},{"n":15,"t":"콘텐츠산업에 대한 범정부적 지원이 부족한 상황으로, 콘텐츠산업 예산은 정부 전체 예산의 0.13%에 불과하다(5년간 3,134조원 중 4.2조원"}],"Actors:gov":[{"n":10,"t":"영화관람료 부과금을 포함한 18개 법정부담금 폐지에 관한 일괄 개정 법률안 통과를 추진하여, 영화관 입장객의 부과금 납부 의무를 해소한다('25"},{"n":13,"t":"K-콘텐츠 수출 총괄 지원 및 연관산업 파급효과 확대를 위해 문체부장관을 위원장으로 하는 K-콘텐츠 수출협의회를 운영하며, 12개 부처·청 차관"},{"n":13,"t":"K-콘텐츠 수출 총괄 지원 및 연관산업 파급효과 확대를 위해 문체부장관을 위원장으로 하는 K-콘텐츠 수출협의회를 운영하며, 12개 부처·청 차관"}],"Actors:governance":[{"n":11,"t":"콘텐츠분쟁조정위원회의 분쟁 해결 기능을 강화하기 위해 합의권고, 직권조정, 집단분쟁 조정 등을 도입하는 콘텐츠산업 진흥법 개정을 추진한다"},{"n":17,"t":"콘텐츠산업 진흥 정책의 최고 의사결정기구 위상에 걸맞게 콘텐츠산업진흥위원회를 국가콘텐츠산업진흥위원회로 명칭을 변경하고, 대통령 주재 회의(비정기"},{"n":107,"t":"콘텐츠 분쟁조정위원회의 실효성을 강화하기 위해 강제력 없는 권고 수준 조정에서 나아가 직권조정 결정 및 집단분쟁 조정을 도입한다"}],"Institutions:Tax":[{"n":12,"t":"영상콘텐츠 제작비 세액공제를 확대하여 기본공제율을 대기업 5%, 중견기업 10%, 중소기업 15%로 상향하고, 국내 지출 비중이 높은 콘텐츠에 "},{"n":21,"t":"해외 제작사의 국내 촬영을 유치하기 위해 인바운드 촬영 인센티브 제도 도입을 검토하며, 해외 제작사가 우리나라에서 지출한 제작비의 20~30%를"},{"n":21,"t":"해외 제작사의 국내 촬영을 유치하기 위해 인바운드 촬영 인센티브 제도 도입을 검토하며, 해외 제작사가 우리나라에서 지출한 제작비의 20~30%를"}],"Activities:Production":[{"n":12,"t":"영상콘텐츠 제작비 세액공제를 확대하여 기본공제율을 대기업 5%, 중견기업 10%, 중소기업 15%로 상향하고, 국내 지출 비중이 높은 콘텐츠에 "},{"n":41,"t":"드라마·예능 등 방송영상 IP 공동보유 시 제작비를 지원하여, 제작사와 OTT(플랫폼) 간 IP 공유 문화를 확산시킨다"},{"n":53,"t":"콘솔게임은 평균 제작 기간이 29.5개월, 제작비용이 33.6억 원에 달하는 장기 고비용 구조로, 맞춤형 집중 지원이 필요하다"}],"Institutions:Governance":[{"n":13,"t":"K-콘텐츠 수출 총괄 지원 및 연관산업 파급효과 확대를 위해 문체부장관을 위원장으로 하는 K-콘텐츠 수출협의회를 운영하며, 12개 부처·청 차관"},{"n":33,"t":"콘텐츠 산업정책을 총괄하는 추진체계로서 콘산위-문체부-공공기관(한국콘텐츠진흥원, 영화진흥위원회, 게임위원회 등)으로 이어지는 지원체계를 구축한다"},{"n":90,"t":"아시아 권역 협력 강화를 위해 한일중 콘텐츠산업포럼(현재 국장급)을 3국 간 콘텐츠 분야 장관급 회의체로 격상 추진한다"}],"Activities:Export":[{"n":13,"t":"K-콘텐츠 수출 총괄 지원 및 연관산업 파급효과 확대를 위해 문체부장관을 위원장으로 하는 K-콘텐츠 수출협의회를 운영하며, 12개 부처·청 차관"},{"n":19,"t":"해외투자 및 해외진출을 촉진하기 위해 국산 애니메이션 인정기준을 완화한다(제작비 내국인 출자 비중 요건 완화 등, 「방송프로그램 등의 편성에 관"},{"n":40,"t":"콘텐츠 기업의 해외 지사 역할을 수행하는 콘텐츠 비즈니스센터를 확대('24년 25개)하고, 해외거점 간 연계 및 체계적 수출 전략 수립을 위해 "}],"Artifacts:Brand":[{"n":13,"t":"K-콘텐츠 수출 총괄 지원 및 연관산업 파급효과 확대를 위해 문체부장관을 위원장으로 하는 K-콘텐츠 수출협의회를 운영하며, 12개 부처·청 차관"},{"n":26,"t":"K-콘텐츠에 대한 글로벌 수요 증가에 따라 넷플릭스는 한국에 4년간 25억 달러 투자를 약속하였다('23.4월)"},{"n":27,"t":"K-콘텐츠에 대한 해외 투자 확대의 일환으로 사우디 국부 펀드 등이 카카오엔터에 1.2조원 투자를 발표하였다('23.1월)"}],"Institutions:Strategy":[{"n":15,"t":"콘텐츠산업에 대한 범정부적 지원이 부족한 상황으로, 콘텐츠산업 예산은 정부 전체 예산의 0.13%에 불과하다(5년간 3,134조원 중 4.2조원"},{"n":16,"t":"콘텐츠산업에 대한 과감한 지원을 통해 산업 재도약 기반을 마련하고자 콘텐츠 예산 1조원을 돌파하고 역대 최대규모 정책금융 1조 7,400억원을 "},{"n":17,"t":"콘텐츠산업 진흥 정책의 최고 의사결정기구 위상에 걸맞게 콘텐츠산업진흥위원회를 국가콘텐츠산업진흥위원회로 명칭을 변경하고, 대통령 주재 회의(비정기"}],"Institutions:Fund":[{"n":22,"t":"K-콘텐츠·미디어 기업의 전략적 육성을 위해 민관 공동 출자를 통한 전략펀드를 조성하며, 4년간('24~'27년) 총 1,350억원 출자로 약 "},{"n":23,"t":"콘텐츠 중소·벤처기업의 자금난 해소와 투자활성화를 위해 모태펀드 문화계정을 '24~'27년 약 2조 4,000억원 규모로 확대 조성한다(연평균 "},{"n":23,"t":"콘텐츠 중소·벤처기업의 자금난 해소와 투자활성화를 위해 모태펀드 문화계정을 '24~'27년 약 2조 4,000억원 규모로 확대 조성한다(연평균 "}],"Institutions:Standard":[{"n":24,"t":"콘텐츠산업 내 공정·상생문화 정착을 위해 현장에 맞는 표준계약서(콘텐츠 10개 분야 54종)를 제·개정하고 확산을 추진한다"},{"n":121,"t":"국내 제작사의 IP 양도 관행 개선을 위해 국가지원사업 선정시 방송표준계약서 적용 대상을 확대한다"},{"n":123,"t":"크리에이터 미디어 종사자의 권리보장을 위해 표준계약서를 마련하고, 노무·법률 상담 등을 지원한다"}],"Activities:Promotion":[{"n":24,"t":"콘텐츠산업 내 공정·상생문화 정착을 위해 현장에 맞는 표준계약서(콘텐츠 10개 분야 54종)를 제·개정하고 확산을 추진한다"},{"n":59,"t":"한류 확산으로 콘텐츠·연관산업 수요가 큰 지역 위주로 K-제품 상설전시-홍보-컨설팅이 가능한 관계부처 합동 해외홍보관 'KOREA360'을 운영"},{"n":89,"t":"K-콘텐츠의 글로벌 주류문화 도약을 위해 전 세계 한류팬 수를 2억 2,500만명('23년)에서 3억 명('27년)으로 확대하는 것을 목표로 한"}],"Actors:country":[{"n":25,"t":"프랑스는 미래산업 육성 투자계획 France 2030('21.10)을 통해 5년간 300억 유로를 투자하며, 이 중 문화콘텐츠 분야에 20억 유"},{"n":49,"t":"콘텐츠 수출의 지역 편중 현상이 심화되어, 전체 콘텐츠 수출액 중 아시아권(중화권+일본+동남아) 비중이 70.4%('22년)를 차지하고 있다"},{"n":49,"t":"콘텐츠 수출의 지역 편중 현상이 심화되어, 전체 콘텐츠 수출액 중 아시아권(중화권+일본+동남아) 비중이 70.4%('22년)를 차지하고 있다"}],"Activities:Training":[{"n":25,"t":"프랑스는 미래산업 육성 투자계획 France 2030('21.10)을 통해 5년간 300억 유로를 투자하며, 이 중 문화콘텐츠 분야에 20억 유"},{"n":29,"t":"OTT 산업의 성장에 대응하여 기획-제작-비즈니스 등 석·박사급 창제작 전문인력을 양성하기 위해 OTT 대학원을 운영한다('24년 수도권 2개)"},{"n":30,"t":"콘텐츠 기술 고급인력을 양성하기 위해 산학연 연계 프로젝트를 기반으로 기술개발과 동시에 석·박사급 문화기술 R&D 인력을 양성한다('24년 90"}],"Artifacts:Infra":[{"n":25,"t":"프랑스는 미래산업 육성 투자계획 France 2030('21.10)을 통해 5년간 300억 유로를 투자하며, 이 중 문화콘텐츠 분야에 20억 유"},{"n":34,"t":"전국 광역거점에 콘텐츠코리아랩 15개소를 구축하여 지역주민 콘텐츠 향유 및 예비 창·제작자 육성 거점으로 활용하고, 콘텐츠기업지원센터 11개소를"},{"n":34,"t":"전국 광역거점에 콘텐츠코리아랩 15개소를 구축하여 지역주민 콘텐츠 향유 및 예비 창·제작자 육성 거점으로 활용하고, 콘텐츠기업지원센터 11개소를"}],"Actors:global_company":[{"n":26,"t":"K-콘텐츠에 대한 글로벌 수요 증가에 따라 넷플릭스는 한국에 4년간 25억 달러 투자를 약속하였다('23.4월)"},{"n":39,"t":"콘솔게임 집중육성을 위해 글로벌 콘솔 플랫폼사(MS, 소니, 닌텐도 등)와 연계하여 우수 콘솔게임 발굴에서 홍보까지 체계적으로 지원한다"},{"n":62,"t":"글로벌 OTT는 국내 제작사에게 수익(10~15%)을 보장한 후 IP를 소유·자산화하여, IP 확보 여부에 따라 수익 격차가 심화되고 있다(넷플"}],"Actors:platform":[{"n":27,"t":"K-콘텐츠에 대한 해외 투자 확대의 일환으로 사우디 국부 펀드 등이 카카오엔터에 1.2조원 투자를 발표하였다('23.1월)"},{"n":167,"t":"국내 OTT의 적자가 심화되어, 티빙은 '21년 762억원에서 '22년 1,192억원으로, 웨이브는 '21년 558억원에서 '22년 1,213억"},{"n":188,"t":"유튜브·치지직 등 온라인동영상공유플랫폼과 가상인간·AI 등 문화기술융합영상콘텐츠의 산업적 기반 마련을 위해, 뉴미디어영상콘텐츠산업법을 제정한다("}],"Actors:individual":[{"n":28,"t":"K-콘텐츠가 'Korea Invasion'이라는 새로운 문화현상을 창조하며, 전 세계 한류팬 수는 2억 2,500만명('23년)으로 10여년 전"},{"n":51,"t":"K-웹툰의 글로벌 인지도 제고 및 독자층 확보를 위해 비즈니스용 샘플제작, 번역·감수 지원을 확대('24년 10억→'27년 40억)하고, 글로벌"},{"n":70,"t":"콘텐츠·이용자 보호 및 유통 기술이 디지털 워터마크에서 객체 위변조 방지를 거쳐 AI 기반 불법 저작물 자동 탐지 및 유사도 분석 기술로 단계적"}],"Activities:Performance":[{"n":28,"t":"K-콘텐츠가 'Korea Invasion'이라는 새로운 문화현상을 창조하며, 전 세계 한류팬 수는 2억 2,500만명('23년)으로 10여년 전"},{"n":35,"t":"콘텐츠산업 사업체는 '22년 기준 11만 5천여 개로 전년 대비 5.7% 증가하는 등 전체 산업 평균(1.0%)보다 5.7배 높은 증가세를 보인"},{"n":45,"t":"콘텐츠산업의 경제기여도가 지속적으로 상승하여, 부가가치액은 '22년 56조 3,366억 원으로 전년 대비 6.2% 증가하였다"}],"Relations:Causal":[{"n":28,"t":"K-콘텐츠가 'Korea Invasion'이라는 새로운 문화현상을 창조하며, 전 세계 한류팬 수는 2억 2,500만명('23년)으로 10여년 전"},{"n":52,"t":"콘텐츠 기업 성장을 통한 일자리 창출을 위해 K-콘텐츠 일자리수를 '22년 64만 명에서 '27년 74만 명으로 확대하는 것을 목표로 한다"},{"n":56,"t":"콘텐츠산업은 서비스산업 대표 수출 흑자(121억 달러) 산업으로, 수출액 '22년 132억 달러를 기록하며 연평균('18~'22년) 8.3% 성"}],"Actors:labor":[{"n":29,"t":"OTT 산업의 성장에 대응하여 기획-제작-비즈니스 등 석·박사급 창제작 전문인력을 양성하기 위해 OTT 대학원을 운영한다('24년 수도권 2개)"},{"n":30,"t":"콘텐츠 기술 고급인력을 양성하기 위해 산학연 연계 프로젝트를 기반으로 기술개발과 동시에 석·박사급 문화기술 R&D 인력을 양성한다('24년 90"},{"n":31,"t":"신기술 기반 게임 인재를 양성하기 위해 게임인재원의 교육인원을 확대('24년 120명→'27년 180명)하고 프로그램을 다양화한다('24년 3개"}],"Artifacts:Technology":[{"n":30,"t":"콘텐츠 기술 고급인력을 양성하기 위해 산학연 연계 프로젝트를 기반으로 기술개발과 동시에 석·박사급 문화기술 R&D 인력을 양성한다('24년 90"},{"n":36,"t":"AI, 실감기술 등 신기술과 콘텐츠를 연계한 융복합 콘텐츠 창·제작 전문인재를 양성하기 위해 뉴콘텐츠 아카데미를 운영한다('24년 200명)"},{"n":43,"t":"콘텐츠 패러다임 선점을 위한 핵심기술 개발을 통해 R&D 기술사업화 매출액 6,000억원 및 특허 등록 1,300건 달성을 목표로 한다('27년"}],"Actors:public_agency":[{"n":33,"t":"콘텐츠 산업정책을 총괄하는 추진체계로서 콘산위-문체부-공공기관(한국콘텐츠진흥원, 영화진흥위원회, 게임위원회 등)으로 이어지는 지원체계를 구축한다"},{"n":33,"t":"콘텐츠 산업정책을 총괄하는 추진체계로서 콘산위-문체부-공공기관(한국콘텐츠진흥원, 영화진흥위원회, 게임위원회 등)으로 이어지는 지원체계를 구축한다"},{"n":33,"t":"콘텐츠 산업정책을 총괄하는 추진체계로서 콘산위-문체부-공공기관(한국콘텐츠진흥원, 영화진흥위원회, 게임위원회 등)으로 이어지는 지원체계를 구축한다"}],"Relations:Dependent":[{"n":38,"t":"콘텐츠산업의 지역 간 불균형이 심화되어 전체 콘텐츠산업 중 서울지역 매출액 비중이 63.4%를 차지하는 반면, 사업체 수는 33.5%에 불과하다"},{"n":49,"t":"콘텐츠 수출의 지역 편중 현상이 심화되어, 전체 콘텐츠 수출액 중 아시아권(중화권+일본+동남아) 비중이 70.4%('22년)를 차지하고 있다"},{"n":53,"t":"콘솔게임은 평균 제작 기간이 29.5개월, 제작비용이 33.6억 원에 달하는 장기 고비용 구조로, 맞춤형 집중 지원이 필요하다"}],"Artifacts:IP":[{"n":41,"t":"드라마·예능 등 방송영상 IP 공동보유 시 제작비를 지원하여, 제작사와 OTT(플랫폼) 간 IP 공유 문화를 확산시킨다"},{"n":42,"t":"콘텐츠 창·제작, 기업 간 협업, 전시·유통·체험 등 IP 활용 융·복합산업을 지원하는 IP 융복합 콘텐츠 클러스터를 고양시에 구축한다(~'25"},{"n":62,"t":"글로벌 OTT는 국내 제작사에게 수익(10~15%)을 보장한 후 IP를 소유·자산화하여, IP 확보 여부에 따라 수익 격차가 심화되고 있다(넷플"}],"Activities:RnD":[{"n":43,"t":"콘텐츠 패러다임 선점을 위한 핵심기술 개발을 통해 R&D 기술사업화 매출액 6,000억원 및 특허 등록 1,300건 달성을 목표로 한다('27년"},{"n":61,"t":"AI 기술 보편화에 따라 콘텐츠 생태계 전반에 급격한 기술혁신이 진행되며, AI 기술은 생성형 AI에서 멀티모달 AI를 거쳐 범용 인공지능으로 "},{"n":71,"t":"콘텐츠 신규 시장 창출을 위해 디바이스·플랫폼 협력이 필수적인 디스플레이(경험확장 거대 몰입형 콘텐츠) 및 모빌리티(미래 이동공간 콘텐츠)와의 "}],"Actors:academia":[{"n":44,"t":"콘텐츠산업 30년을 이끌 메가 비전으로, 콘텐츠 기업·대학·연구소·사람이 총집결하여 K-콘텐츠가 끊임없이 생산·유통되는 K-콘텐츠 복합문화단지를"},{"n":127,"t":"미디어·콘텐츠 및 AI 업계와 연계하여 청년 대상 신기술 교육-제작-취업까지 연계한 '미디어 DX 아카데미'(연 60명)와 기술 종사자 역량 확"},{"n":128,"t":"산업체 예비인력의 창작능력·현장실무 교육을 위해 대학-기업 공동 교육과정 설계, 이론교육, 산업계 실습, 인턴십으로 이어지는 산학연 연계 '콘텐"}],"Actors:city":[{"n":54,"t":"전국적 콘텐츠 거점 구축을 위해 경기(IP융복합), 부산(영상), 대구(게임테크), 광주(캐릭터시티), 대전(특수영상) 등 지역별 특화콘텐츠를 "},{"n":55,"t":"K-영상 지역 생산기지를 구축하기 위해 국내 최대 야외촬영장(약 23,000평)과 중·대형 스튜디오를 갖춘 부산촬영소를 건립한다('26년 개관)"},{"n":228,"t":"부산을 세계적인 영상중심도시로 육성하기 위해, 국립영상박물관 건립, 부산 영상촬영소 구축(국내 최대 야외촬영장 23,000평, 실내스튜디오 3개"}],"Institutions:Agreement":[{"n":60,"t":"K-콘텐츠 불법유통 국제공조수사를 위해 문체부-경찰청-인터폴 공동 프로젝트인 I-SOP(Interpol-Stop Online Piracy)를 추"},{"n":115,"t":"제작사의 IP 확보 역량 강화를 위해 OTT 특화 제작지원(IP 공동보유 의무) 등 IP 확보 조건 중심 사업 규모를 확대한다('23년 454억"},{"n":402,"t":"빅카인즈 협약사가 2024년 104개사로 확대되고 회원 수가 약 9만 2,000명에 달하여, 뉴스 빅데이터 기반 미디어 서비스의 이용 기반이 확"}],"Activities:Distribution":[{"n":60,"t":"K-콘텐츠 불법유통 국제공조수사를 위해 문체부-경찰청-인터폴 공동 프로젝트인 I-SOP(Interpol-Stop Online Piracy)를 추"},{"n":63,"t":"콘텐츠 IP의 연관산업 활용 확대를 위해 실물 상품(식품·음료, 패션, 화장품 등) 개발 및 한류 IP 협업상품 개발·유통을 지원한다(예: 게임"},{"n":83,"t":"디지털 콘텐츠와 스트리밍 서비스의 성숙·포화단계 진입으로 콘텐츠산업 연평균 성장률이 6.0%('18~'22년)에서 4.5%('22~'27년)로 "}],"Artifacts:XR":[{"n":66,"t":"6G 등장과 온디바이스(On-device) AI 발전 등 네트워크 장벽이 낮아지면서 XR·메타버스 등 고사양 콘텐츠의 대중화가 전망된다"},{"n":66,"t":"6G 등장과 온디바이스(On-device) AI 발전 등 네트워크 장벽이 낮아지면서 XR·메타버스 등 고사양 콘텐츠의 대중화가 전망된다"},{"n":129,"t":"신기술(AI, 메타버스 등) 활용 역량이 높은 융합인재 육성을 위해 '뉴콘텐츠아카데미'(연 200명)와 '메타버스 융합대학원·메타버스 아카데미'"}],"Activities:Regulation":[{"n":70,"t":"콘텐츠·이용자 보호 및 유통 기술이 디지털 워터마크에서 객체 위변조 방지를 거쳐 AI 기반 불법 저작물 자동 탐지 및 유사도 분석 기술로 단계적"},{"n":123,"t":"크리에이터 미디어 종사자의 권리보장을 위해 표준계약서를 마련하고, 노무·법률 상담 등을 지원한다"},{"n":134,"t":"민관 상시 협력 및 침해 대응 정보 공유를 위해 문체·외교·법무부 등 8개 부처와 8개 공공기관, 20개 콘텐츠 협회·단체가 참여하는 해외지식재"}],"Activities:Survey":[{"n":76,"t":"K-콘텐츠가 국가 이미지에 긍정적 영향을 미치며, 외국인의 77.5%('23년)가 한국에 대한 국가 이미지를 긍정적으로 평가하고, K-콘텐츠와 "},{"n":116,"t":"저작권 침해 종합대응을 강화하기 위해 3단계 시스템을 구축한다: 1단계('22) 심의·모니터링 개선(44억), 2단계('23) 불법사이트 자동탐"},{"n":165,"t":"국내 미디어·콘텐츠 산업의 SWOT 분석 결과, 강점으로 K-콘텐츠의 높은 글로벌 경쟁력, 세계 최고 수준의 ICT와 네트워크 인프라, 가성비 "}],"Artifacts:Data":[{"n":160,"t":"수출용 콘텐츠의 후반제작을 위해 번역·자막·더빙에 AI를 접목하며, 현지어 자동더빙기술을 개발하고 AI 학습용 데이터를 구축·개방한다"},{"n":163,"t":"대부분 외국배경(특히 아시아는 일본 위주)인 시중 배경 데이터를 보완하기 위해, 한국의 명소·경관 등을 버추얼 스튜디오의 LED 배경영상 및 범"},{"n":187,"t":"게이머 친화 환경 조성을 위해, 확률형 아이템 정보공개 관련 국내대리인 제도를 시행한다(2025.10.)"}],"Artifacts:Fandom":[{"n":166,"t":"국내 미디어·콘텐츠 산업의 기회요인으로 글로벌 OTT사의 국내 투자 확대, K-콘텐츠에 대한 해외 팬덤 확산, 세계 최고 수준의 신기술수용도가 "},{"n":201,"t":"K-팝, 드라마, 게임 등 K-콘텐츠의 세계적 확산에 힘입어, 전 세계 한류 팬 수가 2억 2,500만 명으로 12년 전 대비 24배 이상 급증"},{"n":288,"t":"전 세계 109개국을 대상으로 한 2022년 해외 한류 동호회 현황에서 동호인 수는 약 1억 7,883만 명으로 전년(1억 5,661만 명) 대"}],"Artifacts:Product":[{"n":183,"t":"게이머 친화 환경 조성의 일환으로, 확률형 아이템 등으로 인한 집단·분산적 피해구제를 위해 소송특례를 도입한다(2025.1. 개정)"},{"n":456,"t":"국민의 독서 접근성을 높이기 위해 듣는 책 298종을 제작하고, 디지털북 체험공간을 60회 운영하여 1,546명이 참여하는 등 독서 콘텐츠의 다"},{"n":777,"t":"4분기 음반판매량 써클차트 TOP100 기준 2,602만 장(전년 동기 대비 22.0% 감소)"}],"Relations:Substitutive":[{"n":273,"t":"문화체육관광부는 K-콘텐츠를 반도체·이차전지 등과 함께 국가전략산업으로 정하고 수출 지형을 재편하는 승부수로 집중 육성하기 위해 2023년 K-"},{"n":327,"t":"방송시장 비중은 2017년 20.7%에서 2026년 14.8%로 점차 감소할 전망인데, 이는 영상 스트리밍의 확대로 TV·라디오 등 전통적 미디"},{"n":449,"t":"2023년 콘텐츠산업에서 출판산업 매출이 5.1%, 영화산업 19.9%, 방송산업 2.7%, 광고산업 1.3% 감소하여 주요 전통 장르의 매출 "}],"Actors:event":[{"n":473,"t":"부산국제영화제 개막작에 OTT 영화 <전, 란>이 선정되면서 '영화'의 법·제도적 정의와 현실에서의 영화 개념 간 괴리가 새로운 쟁점으로 부상하"},{"n":1072,"t":"부산국제영화제(BIFF)는 기존 국제영화제와의 직접 경쟁을 피하고 '아시아 영화', '젊은 감독', '비경쟁' 3가지 키워드로 니치 시장을 전략"},{"n":1079,"t":"광주디자인비엔날레는 2009년 기준 약 1,900만 달러의 경제적 파급효과를 창출하여 문화행사가 도시 경제에 기여할 수 있음을 보여주었다"}],"Actors:star":[{"n":608,"t":"전통적 아이돌 음악과 트랜스미디어 콘텐츠(<케이팝 데몬 헌터스> OST 등)가 음악 차트 상단에서 경쟁하는 구도가 형성되어, 음악산업에서 트랜스"},{"n":685,"t":"IPX(라인프랜즈·BT21)와 뉴진스의 협업으로 탄생한 '버니니' 캐릭터 IP처럼 K-팝 아티스트와 캐릭터 IP의 협업이 새로운 비즈니스 모델로"},{"n":757,"t":"플레이브(PLAVE): 버츄얼 아이돌, 멜론 빌리언스클럽 역대 최단 등재"}],"Artifacts:Indicator":[{"n":620,"t":"2024년 기준 매출액 10억 원 미만 사업체의 매출 비중은 13.1%에 불과한 반면 10억 원 이상 사업체가 86.9%를 차지하여 대형 사업체"},{"n":766,"t":"넷마블: 연간 매출 2조 6,638억 원, 해외매출 79%(북미 46%), 흑자 전환"},{"n":770,"t":"크래프톤: 연간 매출 2조 7,098억 원(전년 대비 41.8% 증가), 역대 최고 실적"}]},"sankey":{"actors":["company","country","global_company","gov","individual","labor","platform","public_agency"],"activities":["Consumption","Distribution","Export","Investment","Operation","Performance","Planning","Production","Survey","Training"],"artifacts":["AI","Brand","Format","Genre","IP","Infra","Platform","Technology"],"aa":[["company","Planning",57],["gov","Planning",54],["country","Consumption",45],["individual","Consumption",41],["company","Performance",38],["country","Planning",38],["country","Export",37],["company","Production",36],["company","Investment",33],["labor","Training",27],["country","Performance",27],["labor","Planning",27],["company","Operation",24],["labor","Operation",24],["country","Survey",24],["individual","Planning",20],["labor","Production",19],["public_agency","Planning",18],["gov","Investment",16],["company","Export",14],["individual","Operation",11],["company","Distribution",11],["individual","Performance",10],["company","Survey",10],["country","Operation",9],["company","Consumption",8],["country","Training",8],["country","Investment",8],["company","Training",8],["country","Production",8],["platform","Performance",8],["public_agency","Survey",8],["individual","Distribution",8],["gov","Operation",7],["gov","Export",7],["global_company","Planning",7],["gov","Production",7],["global_company","Distribution",7],["individual","Survey",6],["labor","Investment",6],["global_company","Consumption",6],["labor","Export",6],["individual","Investment",6],["labor","Survey",6],["platform","Planning",6],["global_company","Performance",6],["individual","Production",5],["gov","Consumption",5],["public_agency","Consumption",5],["country","Distribution",5]],"ba":[["Planning","Genre",102],["Planning","Format",82],["Consumption","Genre",73],["Performance","Genre",61],["Performance","Format",50],["Export","Genre",49],["Production","Genre",48],["Planning","Brand",41],["Consumption","Brand",41],["Planning","Platform",40],["Operation","Genre",38],["Planning","Infra",35],["Planning","AI",33],["Export","Brand",32],["Survey","Genre",32],["Investment","Format",31],["Investment","Genre",31],["Operation","Format",30],["Export","Format",30],["Survey","Brand",29],["Performance","Brand",27],["Planning","IP",27],["Production","IP",22],["Consumption","Platform",21],["Performance","Platform",19],["Training","Genre",18],["Production","Format",18],["Distribution","Genre",17],["Distribution","Platform",16],["Planning","Technology",16],["Investment","Brand",15],["Production","AI",15],["Production","Platform",14],["Distribution","Brand",14],["Distribution","Format",13],["Survey","Format",13],["Consumption","Format",11],["Investment","Infra",10],["Training","Format",10],["Operation","Platform",9],["Consumption","IP",9],["Training","Brand",9],["Training","Platform",8],["Export","Infra",8],["Production","Brand",8],["Export","Platform",8]],"kor":{"company":"기업","country":"국가","gov":"정부","individual":"소비자","labor":"인력","public_agency":"공공기관","platform":"플랫폼","global_company":"글로벌기업","Planning":"기획","Performance":"실적","Consumption":"소비","Export":"수출","Production":"제작","Investment":"투자","Operation":"운영","Survey":"조사","Training":"교육","Distribution":"유통","Genre":"장르","Format":"산업구조","Brand":"브랜드","Platform":"플랫폼","IP":"지식재산","AI":"인공지능","Infra":"인프라","Technology":"기술"}}};
+
+const RAMP = {
+  Institutions: '#534AB7',
+  Actors: '#7F77DD',
+  Activities: '#BA7517',
+  Artifacts: '#0F6E56',
+  Relations: '#993556'
+};
+const clsOrder = ['Institutions','Actors','Activities','Artifacts','Relations'];
+const clsKor = {Institutions:'제도',Actors:'주체',Activities:'활동',Artifacts:'산출물',Relations:'관계'};
+
+/* ============ TABS ============ */
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('panel-' + btn.dataset.panel).classList.add('on');
+    if (btn.dataset.panel === 'network') setTimeout(drawNet, 20);
+    if (btn.dataset.panel === 'sankey') setTimeout(drawSankey, 20);
+  });
+});
+
+/* ============ PANEL 1: OVERVIEW ============ */
+(function () {
+  const grid = document.getElementById('cls-grid');
+  const maxTotal = Math.max(...clsOrder.map(c => DATA.totals[c]));
+  clsOrder.forEach(c => {
+    const subs = DATA.subclasses[c];
+    const top3 = Object.entries(subs).slice(0, 3).map(([k]) => k).join(' · ');
+    const total = DATA.totals[c];
+    const pct = (total / maxTotal) * 100;
+    const card = document.createElement('div');
+    card.className = 'cls-card';
+    card.innerHTML = `
+      <div class="cls-name">${c} <span style="font-size:11px;color:var(--text-2);font-weight:400">${clsKor[c]}</span></div>
+      <div class="cls-count">${Object.keys(subs).length} subclasses · ${total.toLocaleString()} mentions</div>
+      <div class="cls-bar"><div class="cls-bar-fill" style="width:${Math.round(pct)}%;background:${RAMP[c]}"></div></div>
+      <div class="cls-top">${top3}</div>
+    `;
+    grid.appendChild(card);
+  });
+
+  function renderBars(cls) {
+    const container = document.getElementById('bars-' + cls);
+    const entries = Object.entries(DATA.subclasses[cls]);
+    const max = Math.max(...entries.map(e => e[1]));
+    entries.forEach(([name, val]) => {
+      const meta = DATA.meta[cls + ':' + name] || { kor: '', desc: '' };
+      const row = document.createElement('div');
+      row.className = 'subbar-row';
+      row.innerHTML = `
+        <span class="subbar-name">${name}</span>
+        <span class="subbar-kor">${meta.kor || ''}</span>
+        <span class="subbar-track"><span class="subbar-fill" style="width:${Math.round((val / max) * 100)}%;background:${RAMP[cls]}"></span></span>
+        <span class="subbar-val">${val}</span>
+      `;
+      row.addEventListener('click', () => showDetail(cls, name, row));
+      container.appendChild(row);
+    });
+  }
+  clsOrder.forEach(renderBars);
+
+  function showDetail(cls, sub, row) {
+    const box = document.getElementById('det-' + cls);
+    const meta = DATA.meta[cls + ':' + sub] || {};
+    const ex = DATA.examples[cls + ':' + sub] || [];
+    document.getElementById('bars-' + cls).querySelectorAll('.subbar-row').forEach(r => r.classList.remove('active'));
+    row.classList.add('active');
+    box.classList.add('on');
+    box.innerHTML = `
+      <div style="font-weight:500;margin-bottom:4px">${sub} <span style="font-weight:400;color:var(--text-2)">${meta.kor || ''}</span></div>
+      <div class="detail-desc">${meta.desc || ''}</div>
+      ${ex.length ? `<ul class="detail-ex">${ex.map(e => `<li><span class="detail-ex-n">#${e.n}</span>${e.t}…</li>`).join('')}</ul>` : '<div style="color:var(--text-3);font-size:11px">예시 문장 없음</div>'}
+    `;
+  }
+})();
+
+/* ============ PANEL 2: NETWORK ============ */
+const ENTITY_TYPE = {
+  actor_artifact: ['Actors', 'Artifacts'],
+  actor_activity: ['Actors', 'Activities'],
+  activity_artifact: ['Activities', 'Artifacts']
+};
+const NODE_COLOR = { Actors: '#7F77DD', Artifacts: '#1D9E75', Activities: '#EF9F27' };
+let currentEdge = 'actor_artifact';
+
+document.querySelectorAll('.edge-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.edge-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    currentEdge = btn.dataset.edge;
+    drawNet();
+  });
+});
+
+function drawNet() {
+  const svg = d3.select('#net-svg');
+  svg.selectAll('*').remove();
+  const edges = DATA.edges[currentEdge];
+  const [typeA, typeB] = ENTITY_TYPE[currentEdge];
+  const nodeMap = new Map();
+  edges.forEach(([a, b, v]) => {
+    if (!nodeMap.has(a)) nodeMap.set(a, { id: a, type: typeA, deg: 0 });
+    if (!nodeMap.has(b)) nodeMap.set(b, { id: b, type: typeB, deg: 0 });
+    nodeMap.get(a).deg += v;
+    nodeMap.get(b).deg += v;
+  });
+  const nodes = Array.from(nodeMap.values());
+  const links = edges.map(([a, b, v]) => ({ source: a, target: b, value: v }));
+
+  const svgEl = document.getElementById('net-svg');
+  const W = svgEl.clientWidth || 700;
+  const H = 460;
+  svg.attr('viewBox', `0 0 ${W} ${H}`);
+
+  const maxDeg = d3.max(nodes, d => d.deg);
+  const maxVal = d3.max(links, d => d.value);
+  const rScale = d3.scaleSqrt().domain([1, maxDeg]).range([5, 22]);
+  const wScale = d3.scaleSqrt().domain([1, maxVal]).range([0.5, 4]);
+
+  const sim = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d => d.id).distance(d => 90 - wScale(d.value) * 6).strength(0.4))
+    .force('charge', d3.forceManyBody().strength(-200))
+    .force('center', d3.forceCenter(W / 2, H / 2))
+    .force('collide', d3.forceCollide().radius(d => rScale(d.deg) + 12))
+    .alpha(1).alphaDecay(0.04);
+
+  const link = svg.append('g').selectAll('line').data(links).join('line')
+    .attr('class', 'net-link')
+    .attr('stroke', '#888780')
+    .attr('stroke-width', d => wScale(d.value));
+
+  const node = svg.append('g').selectAll('g').data(nodes).join('g').attr('class', 'net-node');
+  node.append('circle')
+    .attr('r', d => rScale(d.deg))
+    .attr('fill', d => NODE_COLOR[d.type])
+    .attr('stroke', 'var(--surface)').attr('stroke-width', 1.2)
+    .style('cursor', 'pointer')
+    .call(d3.drag()
+      .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
+      .on('end', (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
+  node.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('dy', d => -rScale(d.deg) - 4)
+    .text(d => d.id);
+
+  sim.on('tick', () => {
+    link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+      .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+    node.attr('transform', d => `translate(${d.x},${d.y})`);
+  });
+}
+
+/* ============ PANEL 3: SANKEY ============ */
+const SK_COL = { actor: '#7F77DD', activity: '#EF9F27', artifact: '#1D9E75' };
+const SK_LINK = { aa: '#AFA9EC', ba: '#FAC775' };
+
+const skThr = document.getElementById('sk-thr');
+const skTop = document.getElementById('sk-top');
+const skThrV = document.getElementById('sk-thr-v');
+const skTopV = document.getElementById('sk-top-v');
+const skTip = document.getElementById('sk-tip');
+let skSelectedKey = null;
+
+function buildSankey() {
+  const t = +skThr.value, k = +skTop.value;
+  skThrV.textContent = t; skTopV.textContent = k;
+  const aa = DATA.sankey.aa.filter(([, , v]) => v >= t).slice(0, k);
+  const ba = DATA.sankey.ba.filter(([, , v]) => v >= t).slice(0, k);
+  const used = new Set();
+  aa.forEach(([a, b]) => { used.add('A:' + a); used.add('B:' + b); });
+  ba.forEach(([b, c]) => { used.add('B:' + b); used.add('C:' + c); });
+
+  const nodes = [];
+  const idx = new Map();
+  function add(side, id, type) {
+    const key = side + ':' + id;
+    if (!used.has(key) || idx.has(key)) return;
+    idx.set(key, nodes.length);
+    nodes.push({ id, type, key, kor: DATA.sankey.kor[id] || '' });
+  }
+  DATA.sankey.actors.forEach(id => add('A', id, 'actor'));
+  DATA.sankey.activities.forEach(id => add('B', id, 'activity'));
+  DATA.sankey.artifacts.forEach(id => add('C', id, 'artifact'));
+
+  const links = [];
+  aa.forEach(([a, b, v]) => {
+    const s = idx.get('A:' + a), t = idx.get('B:' + b);
+    if (s != null && t != null) links.push({ source: s, target: t, value: v, kind: 'aa' });
+  });
+  ba.forEach(([b, c, v]) => {
+    const s = idx.get('B:' + b), t = idx.get('C:' + c);
+    if (s != null && t != null) links.push({ source: s, target: t, value: v, kind: 'ba' });
+  });
+  return { nodes, links };
+}
+
+function drawSankey() {
+  const data = buildSankey();
+  const svgEl = document.getElementById('sk-svg');
+  const W = svgEl.clientWidth || 700;
+  const H = 560;
+  const svg = d3.select('#sk-svg').attr('viewBox', `0 0 ${W} ${H}`);
+  svg.selectAll('*').remove();
+
+  const sankey = d3.sankey()
+    .nodeId(d => d.index)
+    .nodeWidth(10)
+    .nodePadding(10)
+    .extent([[100, 20], [W - 100, H - 20]])
+    .nodeSort(null);
+
+  const graph = sankey({
+    nodes: data.nodes.map(d => Object.assign({}, d)),
+    links: data.links.map(d => Object.assign({}, d))
+  });
+
+  const g = svg.append('g');
+  const links = g.append('g').attr('fill', 'none').selectAll('path').data(graph.links).join('path')
+    .attr('class', 'sk-link')
+    .attr('d', d3.sankeyLinkHorizontal())
+    .attr('stroke', d => SK_LINK[d.kind])
+    .attr('stroke-opacity', 0.4)
+    .attr('stroke-width', d => Math.max(1, d.width));
+  links.append('title').text(d => `${d.source.id} → ${d.target.id}\n${d.value} 문장`);
+
+  const nodeG = g.append('g').selectAll('g').data(graph.nodes).join('g').attr('class', 'sk-node');
+  nodeG.append('rect')
+    .attr('x', d => d.x0).attr('y', d => d.y0)
+    .attr('width', d => d.x1 - d.x0)
+    .attr('height', d => Math.max(1, d.y1 - d.y0))
+    .attr('fill', d => SK_COL[d.type])
+    .attr('rx', 2)
+    .on('click', (ev, d) => {
+      if (skSelectedKey === d.key) { skSelectedKey = null; clearHi(); }
+      else { skSelectedKey = d.key; hiNode(d, graph); }
+    });
+  nodeG.append('title').text(d => `${d.id} (${d.kor})\n유입 ${d.targetLinks.reduce((s, l) => s + l.value, 0)} · 유출 ${d.sourceLinks.reduce((s, l) => s + l.value, 0)}`);
+  nodeG.append('text')
+    .attr('x', d => d.type === 'artifact' ? d.x0 - 8 : d.x1 + 8)
+    .attr('y', d => (d.y0 + d.y1) / 2 - 6)
+    .attr('dy', '0.35em')
+    .attr('text-anchor', d => d.type === 'artifact' ? 'end' : 'start')
+    .text(d => d.id);
+  nodeG.append('text').attr('class', 'kor')
+    .attr('x', d => d.type === 'artifact' ? d.x0 - 8 : d.x1 + 8)
+    .attr('y', d => (d.y0 + d.y1) / 2 + 8)
+    .attr('dy', '0.35em')
+    .attr('text-anchor', d => d.type === 'artifact' ? 'end' : 'start')
+    .text(d => d.kor);
+
+  function clearHi() {
+    links.classed('dim', false).classed('hi', false);
+    nodeG.classed('dim', false);
+    skTip.classList.remove('on');
+  }
+  function hiNode(node, graph) {
+    const related = new Set(), relNodes = new Set([node.index]);
+    graph.links.forEach(l => {
+      if (l.source.index === node.index || l.target.index === node.index) {
+        related.add(l.index);
+        relNodes.add(l.source.index); relNodes.add(l.target.index);
+      }
+    });
+    if (node.type === 'actor') {
+      const acts = new Set();
+      graph.links.forEach(l => { if (l.source.index === node.index) acts.add(l.target.index); });
+      graph.links.forEach(l => { if (acts.has(l.source.index)) { related.add(l.index); relNodes.add(l.target.index); } });
+    } else if (node.type === 'artifact') {
+      const acts = new Set();
+      graph.links.forEach(l => { if (l.target.index === node.index) acts.add(l.source.index); });
+      graph.links.forEach(l => { if (acts.has(l.target.index)) { related.add(l.index); relNodes.add(l.source.index); } });
+    }
+    links.classed('dim', l => !related.has(l.index)).classed('hi', l => related.has(l.index));
+    nodeG.classed('dim', d => !relNodes.has(d.index));
+    const inL = graph.links.filter(l => l.target.index === node.index).sort((a, b) => b.value - a.value);
+    const outL = graph.links.filter(l => l.source.index === node.index).sort((a, b) => b.value - a.value);
+    const fmt = arr => arr.slice(0, 5).map(l => `${l.source.id === node.id ? l.target.id : l.source.id} <span style="color:var(--text-3)">${l.value}</span>`).join(' · ');
+    skTip.innerHTML = `<strong>${node.id}</strong> <span style="color:var(--text-2)">${node.kor}</span>` +
+      (inL.length ? `<div style="margin-top:4px">← 유입: ${fmt(inL)}</div>` : '') +
+      (outL.length ? `<div style="margin-top:2px">→ 유출: ${fmt(outL)}</div>` : '');
+    skTip.classList.add('on');
+  }
+}
+
+skThr.addEventListener('input', drawSankey);
+skTop.addEventListener('input', drawSankey);
+window.addEventListener('resize', () => {
+  if (document.getElementById('panel-network').classList.contains('on')) drawNet();
+  if (document.getElementById('panel-sankey').classList.contains('on')) drawSankey();
+});
+
+/* ============ INIT ============ */
+drawNet(); // prebuild so first-tab switch is instant
+</script>
+</body>
+</html>
