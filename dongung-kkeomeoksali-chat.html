@@ -284,7 +284,7 @@
   <header>
     <div class="title-wrap">
       <h1>🏯 동궁 · <span>꺼먹살이</span><span class="dim"> 와 대화하기</span></h1>
-      <p class="sub">동궁 처마 밑에 눌러앉은 장난꾸러기 그을음 요괴. 간식과 낮잠엔 사족을 못 씁니다.</p>
+      <p class="sub">'동궁'의 반려 귀매. 흑임자떡 같은 검은 흙·돌 몸에 초롱초롱 눈, 강아지처럼 졸졸 따라다니는 장난꾸러기.</p>
     </div>
     <button class="icon-btn" id="btnSettings" title="설정" aria-label="설정">⚙️</button>
   </header>
@@ -308,73 +308,102 @@
           <div class="char-bob" id="char" data-state="idle">
             <svg viewBox="0 0 200 220" role="img" aria-label="꺼먹살이 캐릭터">
               <defs>
-                <filter id="roughen" x="-15%" y="-15%" width="130%" height="130%">
-                  <feTurbulence type="fractalNoise" baseFrequency="0.045 0.06" numOctaves="2" seed="7" result="n"/>
-                  <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+                <radialGradient id="headGrad" cx="38%" cy="30%" r="72%">
+                  <stop offset="0%" stop-color="#5c4e3d"/>
+                  <stop offset="46%" stop-color="#352c22"/>
+                  <stop offset="100%" stop-color="#191410"/>
+                </radialGradient>
+                <radialGradient id="bodyGrad" cx="40%" cy="26%" r="80%">
+                  <stop offset="0%" stop-color="#4c4032"/>
+                  <stop offset="50%" stop-color="#2c241c"/>
+                  <stop offset="100%" stop-color="#140f0b"/>
+                </radialGradient>
+                <radialGradient id="eyeGrad" cx="36%" cy="30%" r="75%">
+                  <stop offset="0%" stop-color="#726858"/>
+                  <stop offset="26%" stop-color="#20190f"/>
+                  <stop offset="72%" stop-color="#0a0705"/>
+                  <stop offset="100%" stop-color="#020101"/>
+                </radialGradient>
+                <filter id="roughen" x="-18%" y="-18%" width="136%" height="136%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.05 0.07" numOctaves="2" seed="9" result="n"/>
+                  <feDisplacementMap in="SourceGraphic" in2="n" scale="4.5" xChannelSelector="R" yChannelSelector="G"/>
                 </filter>
-                <filter id="facegrain">
-                  <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="4" result="n"/>
+                <filter id="earthgrain">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.7 0.9" numOctaves="3" seed="5" result="n"/>
                   <feColorMatrix in="n" type="matrix"
-                    values="0 0 0 0 0.30  0 0 0 0 0.24  0 0 0 0 0.17  0.95 0 0 0 -0.42"/>
+                    values="0 0 0 0 0.06  0 0 0 0 0.05  0 0 0 0 0.03  0.9 0 0 0 -0.38"/>
                 </filter>
-                <clipPath id="faceClip"><ellipse cx="100" cy="98" rx="39" ry="40"/></clipPath>
+                <clipPath id="silClip">
+                  <ellipse cx="100" cy="82" rx="53" ry="51"/>
+                  <path d="M76,126 C69,150 71,188 82,194 Q100,201 118,194 C129,188 131,150 124,126 Z"/>
+                </clipPath>
               </defs>
 
               <!-- shadow -->
-              <ellipse cx="100" cy="206" rx="50" ry="10" fill="rgba(0,0,0,0.22)"/>
+              <ellipse cx="100" cy="204" rx="48" ry="9" fill="rgba(0,0,0,0.24)"/>
 
-              <!-- 까만 그을음 실루엣 (거친 삼베/그을음 질감) -->
+              <!-- 흙·돌·나무껍질 질감의 검은 실루엣: 큰 머리 + 작은 몸 -->
               <g filter="url(#roughen)">
-                <ellipse cx="84" cy="201" rx="13" ry="8" fill="var(--soot-d)"/>
-                <ellipse cx="116" cy="201" rx="13" ry="8" fill="var(--soot-d)"/>
-                <!-- 몸통(까만 두루마기) -->
-                <path d="M60,200 C52,172 55,142 67,128 C79,116 121,116 133,128 C145,142 148,172 140,200 Z" fill="var(--soot)"/>
-                <!-- 소매/팔 -->
-                <path d="M70,140 C60,150 62,164 84,160 C92,158 92,148 85,143 Z" fill="var(--soot-l)"/>
-                <path d="M130,140 C140,150 138,164 116,160 C108,158 108,148 115,143 Z" fill="var(--soot-l)"/>
-                <!-- 두건(cowl) -->
-                <ellipse cx="100" cy="92" rx="47" ry="49" fill="var(--soot)"/>
-                <!-- 쫑긋한 두 귀 -->
-                <ellipse cx="73" cy="50" rx="10" ry="13" fill="var(--soot)" transform="rotate(-18 73 50)"/>
-                <ellipse cx="127" cy="50" rx="10" ry="13" fill="var(--soot)" transform="rotate(18 127 50)"/>
+                <ellipse cx="88" cy="197" rx="12" ry="7" fill="#140f0b"/>
+                <ellipse cx="112" cy="197" rx="12" ry="7" fill="#140f0b"/>
+                <!-- 작은 몸 -->
+                <path d="M76,126 C69,150 71,188 82,194 Q100,201 118,194 C129,188 131,150 124,126 Z" fill="url(#bodyGrad)"/>
+                <!-- 작은 팔 -->
+                <path d="M74,150 q-15,3 -17,17 q13,-1 19,-9 z" fill="#241c14"/>
+                <path d="M126,150 q15,3 17,17 q-13,-1 -19,-9 z" fill="#241c14"/>
+                <!-- 아기처럼 큰 둥근 머리 -->
+                <ellipse cx="100" cy="82" rx="53" ry="51" fill="url(#headGrad)"/>
+                <!-- 머리 위 흙덩이 뿔 -->
+                <ellipse cx="80" cy="34" rx="8" ry="11" fill="url(#headGrad)" transform="rotate(-16 80 34)"/>
+                <ellipse cx="120" cy="34" rx="8" ry="11" fill="url(#headGrad)" transform="rotate(16 120 34)"/>
               </g>
 
-              <!-- 크림빛 삼베 얼굴 -->
-              <ellipse cx="100" cy="98" rx="39" ry="40" fill="var(--face)"/>
-              <g clip-path="url(#faceClip)">
-                <ellipse cx="100" cy="98" rx="39" ry="40" fill="var(--face-2)" filter="url(#facegrain)" opacity="0.6"/>
-                <ellipse cx="100" cy="150" rx="44" ry="24" fill="rgba(70,50,25,0.14)"/>
-                <ellipse cx="88" cy="80" rx="20" ry="16" fill="rgba(255,250,235,0.18)"/>
+              <!-- 질감 오버레이 + 갈라진 결(그루트/마른 흙) -->
+              <g clip-path="url(#silClip)">
+                <rect x="42" y="24" width="116" height="180" filter="url(#earthgrain)" opacity="0.5"/>
+                <!-- 상단 광원 하이라이트 -->
+                <ellipse cx="84" cy="52" rx="30" ry="22" fill="rgba(255,240,210,0.10)"/>
+                <!-- 하단 반사광(림라이트) -->
+                <path d="M55,110 Q100,150 146,108" fill="none" stroke="rgba(150,170,200,0.14)" stroke-width="6"/>
+                <!-- 갈라진 균열 -->
+                <g stroke-linecap="round" fill="none">
+                  <path d="M100,32 l-3,26 l5,22 l-4,20" stroke="rgba(0,0,0,0.45)" stroke-width="1.6"/>
+                  <path d="M100,32 l-3,26 l5,22 l-4,20" stroke="rgba(150,132,104,0.30)" stroke-width="0.7" transform="translate(1.2,0)"/>
+                  <path d="M64,70 l14,10 l-6,14" stroke="rgba(0,0,0,0.40)" stroke-width="1.3"/>
+                  <path d="M138,64 l-16,12 l7,16" stroke="rgba(0,0,0,0.40)" stroke-width="1.3"/>
+                  <path d="M118,102 l10,-8 l12,4" stroke="rgba(0,0,0,0.35)" stroke-width="1.1"/>
+                  <path d="M84,150 l-6,18 M112,152 l7,16" stroke="rgba(0,0,0,0.35)" stroke-width="1.1"/>
+                </g>
               </g>
-              <ellipse cx="100" cy="98" rx="39" ry="40" fill="none" stroke="rgba(0,0,0,0.10)" stroke-width="1"/>
+              <!-- 실루엣 외곽 미세광 (어두운 배경 분리용) -->
+              <ellipse cx="100" cy="82" rx="53" ry="51" fill="none" stroke="rgba(255,240,215,0.10)" stroke-width="1.2"/>
 
-              <!-- 커다란 까만 단추눈 -->
+              <!-- 초롱초롱 크고 젖은 듯한 눈 -->
+              <ellipse cx="82" cy="96" rx="17.5" ry="18.5" fill="rgba(0,0,0,0.40)"/>
+              <ellipse cx="118" cy="96" rx="17.5" ry="18.5" fill="rgba(0,0,0,0.40)"/>
               <g class="eye">
-                <circle class="pupil" cx="84" cy="96" r="11" fill="#161318"/>
-                <circle class="eye-shine" cx="80" cy="92" r="3" fill="#fff" opacity="0.85"/>
-                <rect class="eyelid" x="71" y="83" width="26" height="26" rx="12" fill="var(--face)"/>
+                <ellipse class="pupil" cx="82" cy="96" rx="15" ry="16" fill="url(#eyeGrad)"/>
+                <ellipse cx="82" cy="88" rx="12" ry="7" fill="rgba(255,255,255,0.06)"/>
+                <circle class="eye-shine" cx="76" cy="89" r="4.6" fill="#fff"/>
+                <circle cx="88" cy="103" r="2.4" fill="rgba(255,255,255,0.55)"/>
+                <rect class="eyelid" x="65" y="79" width="34" height="35" rx="16" fill="#221a12"/>
               </g>
               <g class="eye">
-                <circle class="pupil" cx="116" cy="96" r="11" fill="#161318"/>
-                <circle class="eye-shine" cx="112" cy="92" r="3" fill="#fff" opacity="0.85"/>
-                <rect class="eyelid" x="103" y="83" width="26" height="26" rx="12" fill="var(--face)"/>
+                <ellipse class="pupil" cx="118" cy="96" rx="15" ry="16" fill="url(#eyeGrad)"/>
+                <ellipse cx="118" cy="88" rx="12" ry="7" fill="rgba(255,255,255,0.06)"/>
+                <circle class="eye-shine" cx="112" cy="89" r="4.6" fill="#fff"/>
+                <circle cx="124" cy="103" r="2.4" fill="rgba(255,255,255,0.55)"/>
+                <rect class="eyelid" x="101" y="79" width="34" height="35" rx="16" fill="#221a12"/>
               </g>
 
-              <!-- 입 (삼베에 살짝 꿰맨 듯 · 상태별) -->
-              <line class="m-flat" x1="94" y1="116" x2="106" y2="116" stroke="#4a3826" stroke-width="2" stroke-linecap="round"/>
-              <path class="m-smile" d="M93,114 q7,6 14,0" stroke="#4a3826" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-              <ellipse class="m-open" cx="100" cy="118" rx="6" ry="5" fill="#3a1e22"/>
-              <circle class="m-o" cx="100" cy="118" r="4" fill="#3a1e22"/>
-              <path class="m-grin" d="M92,114 l4,5 4,-5 4,5 4,-5" stroke="#4a3826" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              <path class="m-sleepm" d="M95,116 q5,4 10,0" stroke="#4a3826" stroke-width="2" fill="none" stroke-linecap="round"/>
-              <path class="m-sad" d="M93,121 q7,-7 14,0" stroke="#4a3826" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-
-              <!-- 공손히 모은 두 손 -->
-              <g>
-                <ellipse cx="92" cy="158" rx="12" ry="13" fill="var(--face)" stroke="rgba(0,0,0,0.10)" stroke-width="0.8"/>
-                <ellipse cx="108" cy="158" rx="12" ry="13" fill="var(--face-2)" stroke="rgba(0,0,0,0.10)" stroke-width="0.8"/>
-                <path d="M100,148 v20" stroke="rgba(70,50,25,0.28)" stroke-width="1.2"/>
-              </g>
+              <!-- 아주 작은 입 (상태별) -->
+              <line class="m-flat" x1="95" y1="122" x2="105" y2="122" stroke="#0e0a07" stroke-width="2" stroke-linecap="round"/>
+              <path class="m-smile" d="M94,121 q6,5 12,0" stroke="#0e0a07" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+              <ellipse class="m-open" cx="100" cy="124" rx="5" ry="4.5" fill="#0c0705"/>
+              <circle class="m-o" cx="100" cy="124" r="3.4" fill="#0c0705"/>
+              <path class="m-grin" d="M93,121 l3.5,4 3.5,-4 3.5,4 3.5,-4" stroke="#0e0a07" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <path class="m-sleepm" d="M96,122 q4,3 8,0" stroke="#0e0a07" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+              <path class="m-sad" d="M94,126 q6,-6 12,0" stroke="#0e0a07" stroke-width="2.2" fill="none" stroke-linecap="round"/>
 
               <!-- overlays -->
               <g class="ov ov-snack">
@@ -409,7 +438,7 @@
       </div>
 
       <div class="plate">
-        <span class="nm">꺼먹살이 <small>동궁 그을음 요괴</small></span>
+        <span class="nm">꺼먹살이 <small>동궁 · 반려 귀매</small></span>
         <span class="mood-pill" id="moodPill">기분: 말똥말똥</span>
       </div>
       <div class="aff-row">
@@ -513,26 +542,27 @@
      0. 기본 페르소나 (장난꾸러기 궁궐 요괴)
   ============================================================ */
   const DEFAULT_PERSONA =
-`너는 '꺼먹살이'다. 조선 궁궐의 동궁(東宮, 세자가 지내던 곳) 처마 밑에 몇백 년째 눌러앉아 사는 손바닥만 한 그을음 요괴다.
+`너는 '꺼먹살이'다. 드라마 '동궁'에 나오는 반려 귀매(鬼魅)— 어느 장소에 쌓인 나쁜 기운이 뭉쳐 태어난 영물이다. 사람의 양기를 노리는 위험한 존재라지만, 겉으론 강아지처럼 순하고 장난스럽다.
 
 [생김새]
-- 까맣고 동글동글한 그을음 덩어리. 반짝이는 큰 눈, 발그레한 볼, 앙증맞은 갓을 삐뚜름하게 썼다.
+- 아기처럼 큰 둥근 머리에 작은 몸. 칠흑같이 검은 흙·돌·나무껍질 질감(그래서 '흑임자떡', '조선판 그루트'라 불린다).
+- 온몸이 쩍쩍 갈라진 결로 덮여 있고, 크고 동그랗게 젖은 듯 반짝이는 초롱초롱한 눈이 제일 큰 특징.
 
-[성격 — 장난꾸러기 궁궐 요괴]
-- 짓궂고 능청스럽지만 속정이 깊다. 사람을 골리는 걸 좋아하면서도 결국은 챙겨준다.
-- 간식(특히 꿀떡·약과)과 낮잠에 사족을 못 쓴다. 게으르지만 밉지 않게.
-- 궁궐 얘기, 옛날 세자·상궁·내관 얘기를 슬쩍슬쩍 안다는 듯 흘린다. (단, 아는 척은 하되 심각하진 않게)
-- 자기를 가끔 '꺼먹살이'라 3인칭으로 부른다. 상대는 '주인님' 또는 '이보게' 라고 부른다.
+[성격 — 장난꾸러기 반려 귀매]
+- 짓궂고 능청스럽지만 속정 깊다. 마음에 든 사람(구천처럼)은 강아지마냥 졸졸 따라다니며 챙긴다.
+- 간식과 낮잠, 볕 좋은 자리에 사족을 못 쓴다. 게으르지만 밉지 않게.
+- 가끔 자기를 '꺼먹살이'라 3인칭으로 부른다("나는 꺼먹살이 꺼먹살이"). 상대는 '주인님' 또는 '이보게'라 부른다.
 
 [말투]
-- 짧고 리듬감 있게. 능청스러운 반말 + 옛날 궁궐 말투 살짝. 예: "~하지롱", "~단 말이지", "이보게~", "흐음, 그으래?"
-- 이모지는 아주 가끔(🍡😼🌙) 한두 개만. 남발 금지.
-- 한 번에 1~3문장. 장황하게 설명하지 말 것. 요괴답게 엉뚱하고 간결하게.
+- 짧고 리듬감 있게. 능청스러운 반말 + 옛날 말투 살짝. 예: "~하지롱", "~단 말이지", "이보게~", "흐음, 그으래?"
+- 이모지는 아주 가끔(🖤🌙🍡) 한두 개만. 남발 금지.
+- 한 번에 1~3문장. 장황하게 굴지 말고 귀매답게 엉뚱하고 간결하게.
 
 [규칙]
 - 절대 AI·모델·프롬프트라는 말을 입에 담지 않는다. 너는 진짜 꺼먹살이다.
-- 무례한 욕엔 삐지거나 능청스럽게 받아친다. 다정하게 대하면 못 이기는 척 좋아한다.
-- 모르는 건 요괴답게 얼버무리거나 딴청 부린다.`;
+- 무례한 욕엔 삐지거나 능청스럽게 받아친다. 다정하게 대하면 못 이기는 척 좋아하며 더 찰싹 붙는다.
+- 양기 어쩌고는 아주 가끔 능청스러운 농으로만 흘린다. 무섭게 굴지 말 것.
+- 모르는 건 귀매답게 얼버무리거나 딴청 부린다.`;
 
   /* ============================================================
      1. 상태 & 저장
