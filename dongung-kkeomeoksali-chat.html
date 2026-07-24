@@ -24,9 +24,15 @@
     --stage-floor: #cdb488;
     --radius: 10px;
     --radius-lg: 16px;
-    --soot: #33313c;
-    --soot-d: #26242e;
-    --soot-l: #45424f;
+    --soot: #2b2830;
+    --soot-d: #1e1c22;
+    --soot-l: #3a3742;
+    --face: #d8c8a6;
+    --face-2: #c6b48c;
+    --room-wall: #ead9b8;  --room-wall2: #d8c39a;
+    --room-floor: #b6966560; --room-floor2: #9c7b4a;
+    --room-jar: #7c5a3c;   --room-basket: #c6a55f;
+    --room-light: rgba(255,236,190,0.85);
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -43,6 +49,11 @@
       --stage-1: #2a2436;
       --stage-2: #241e30;
       --stage-floor: #37304a;
+      --soot: #322f3a; --soot-d: #232128; --soot-l: #423e4c;
+      --room-wall: #2c2638; --room-wall2: #241e30;
+      --room-floor: #3a3350; --room-floor2: #2e2842;
+      --room-jar: #4a3f5e; --room-basket: #5a4a6a;
+      --room-light: rgba(190,205,255,0.35);
       --soot: #3a3846;
       --soot-d: #2c2a36;
       --soot-l: #4c495b;
@@ -79,23 +90,34 @@
   .stage {
     position: relative; height: 300px; overflow: hidden;
     background:
-      radial-gradient(120% 80% at 50% -10%, rgba(255,255,255,0.35), transparent 60%),
-      linear-gradient(180deg, var(--stage-1) 0%, var(--stage-2) 62%, var(--stage-floor) 62%, var(--stage-floor) 100%);
+      linear-gradient(180deg, var(--room-wall) 0%, var(--room-wall2) 60%, var(--room-floor2) 60%, var(--room-floor2) 100%);
   }
-  /* palace deco */
-  .lantern { position: absolute; top: 0; width: 26px; height: 62px; opacity: 0.9; }
-  .lantern .string { width: 2px; height: 16px; margin: 0 auto; background: rgba(0,0,0,0.25); }
-  .lantern .globe { width: 26px; height: 34px; border-radius: 13px/16px; background:
-      radial-gradient(circle at 40% 35%, #ff9a6b, #d94f3d); box-shadow: 0 0 18px rgba(217,79,61,0.5);
-      border-top: 3px solid #7a3b2f; border-bottom: 3px solid #7a3b2f; animation: sway 4s ease-in-out infinite; transform-origin: top center; }
-  .lantern.l1 { left: 24px; } .lantern.l2 { right: 24px; animation-delay: -2s; }
-  .lantern.l2 .globe { animation-delay: -2s; }
-  @keyframes sway { 0%,100%{ transform: rotate(-5deg);} 50%{ transform: rotate(5deg);} }
-  .roof { position: absolute; top: -2px; left: -5%; width: 110%; height: 30px;
-          background: linear-gradient(180deg, #6d4b34, #5a3d29); clip-path: polygon(0 100%, 6% 40%, 50% 0, 94% 40%, 100% 100%);
-          opacity: 0.28; }
-  .floorline { position: absolute; left: 0; right: 0; top: 62%; height: 1px; background: rgba(0,0,0,0.12); }
-  .floor-plank { position: absolute; top: 62%; bottom: 0; width: 1px; background: rgba(0,0,0,0.06); }
+  /* 실내 창고: 창문 햇살 */
+  .window { position: absolute; top: 14px; left: 18px; width: 66px; height: 84px; border-radius: 3px;
+    background: linear-gradient(160deg, var(--room-light), rgba(255,255,255,0.05));
+    border: 4px solid rgba(80,55,32,0.55); box-shadow: inset 0 0 0 2px rgba(80,55,32,0.25); }
+  .window::before, .window::after { content:""; position:absolute; background: rgba(80,55,32,0.5); }
+  .window::before { left:50%; top:0; bottom:0; width:3px; margin-left:-1.5px; }
+  .window::after  { top:50%; left:0; right:0; height:3px; margin-top:-1.5px; }
+  .beam { position: absolute; top: 20px; left: 20px; width: 180px; height: 210px; pointer-events:none;
+    background: linear-gradient(120deg, var(--room-light), transparent 55%); opacity: .5;
+    clip-path: polygon(0 6%, 34% 0, 78% 74%, 30% 100%); filter: blur(3px); }
+  /* 항아리(옹기) */
+  .jar { position: absolute; bottom: 40%; border-radius: 50% 50% 46% 46% / 42% 42% 58% 58%;
+    background: radial-gradient(60% 45% at 38% 30%, rgba(255,255,255,0.22), transparent 60%), var(--room-jar);
+    box-shadow: inset -6px -8px 14px rgba(0,0,0,0.35); }
+  .jar.j1 { right: 20px; width: 74px; height: 96px; }
+  .jar.j2 { right: 74px; width: 52px; height: 66px; bottom: 40%; opacity: .9; }
+  .jar .lid { position:absolute; top:-6px; left:50%; transform:translateX(-50%); width:64%; height:12px;
+    border-radius:50%; background: var(--room-jar); filter: brightness(.8); }
+  /* 짚 바구니 */
+  .basket { position: absolute; bottom: 40%; left: 8px; width: 60px; height: 58px; border-radius: 8px 8px 12px 12px;
+    background:
+      repeating-linear-gradient(90deg, var(--room-basket), var(--room-basket) 5px, rgba(0,0,0,.12) 5px, rgba(0,0,0,.12) 7px),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.10), rgba(0,0,0,.10) 8px, transparent 8px, transparent 16px);
+    box-shadow: inset -4px -6px 12px rgba(0,0,0,0.3); opacity:.95; }
+  .floorline { position: absolute; left: 0; right: 0; top: 60%; height: 1px; background: rgba(0,0,0,0.18); }
+  .floor-plank { position: absolute; top: 60%; bottom: 0; width: 1px; background: rgba(0,0,0,0.10); }
 
   .char-drift { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%);
                 animation: drift 9s ease-in-out infinite; will-change: transform; }
@@ -125,7 +147,7 @@
 
   /* eye/mouth states — parts hidden by default, shown per state */
   .m-smile,.m-open,.m-o,.m-flat,.m-grin,.m-sleepm,.m-sad { display: none; }
-  .char-bob[data-state="idle"]     .m-smile,
+  .char-bob[data-state="idle"]     .m-flat,
   .char-bob[data-state="talk"]     .m-open,
   .char-bob[data-state="happy"]    .m-open,
   .char-bob[data-state="love"]     .m-smile,
@@ -161,7 +183,6 @@
   .eyelid { transform-origin: center top; transform: scaleY(0); transition: transform .09s ease; }
   .char-bob.is-blink .eyelid { transform: scaleY(1); }
   .char-bob[data-state="sleep"] .eyelid { transform: scaleY(1); transition: transform .3s ease; }
-  .char-bob[data-state="sleep"] .eye-white,
   .char-bob[data-state="sleep"] .pupil,
   .char-bob[data-state="sleep"] .eye-shine { opacity: 0; }
   .char-bob[data-state="surprise"] .pupil { transform: scale(1.25); }
@@ -272,70 +293,88 @@
     <!-- ===== Character stage ===== -->
     <div class="stage-card">
       <div class="stage" id="stage">
-        <div class="roof"></div>
-        <div class="lantern l1"><div class="string"></div><div class="globe"></div></div>
-        <div class="lantern l2"><div class="string"></div><div class="globe"></div></div>
+        <div class="window"></div>
+        <div class="beam"></div>
+        <div class="jar j2"><div class="lid"></div></div>
+        <div class="jar j1"><div class="lid"></div></div>
+        <div class="basket"></div>
         <div class="floorline"></div>
-        <div class="floor-plank" style="left:18%"></div>
-        <div class="floor-plank" style="left:38%"></div>
-        <div class="floor-plank" style="left:58%"></div>
-        <div class="floor-plank" style="left:78%"></div>
+        <div class="floor-plank" style="left:22%"></div>
+        <div class="floor-plank" style="left:44%"></div>
+        <div class="floor-plank" style="left:66%"></div>
+        <div class="floor-plank" style="left:86%"></div>
 
         <div class="char-drift" id="charDrift">
           <div class="char-bob" id="char" data-state="idle">
             <svg viewBox="0 0 200 220" role="img" aria-label="꺼먹살이 캐릭터">
+              <defs>
+                <filter id="roughen" x="-15%" y="-15%" width="130%" height="130%">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.045 0.06" numOctaves="2" seed="7" result="n"/>
+                  <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+                </filter>
+                <filter id="facegrain">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="4" result="n"/>
+                  <feColorMatrix in="n" type="matrix"
+                    values="0 0 0 0 0.30  0 0 0 0 0.24  0 0 0 0 0.17  0.95 0 0 0 -0.42"/>
+                </filter>
+                <clipPath id="faceClip"><ellipse cx="100" cy="98" rx="39" ry="40"/></clipPath>
+              </defs>
+
               <!-- shadow -->
-              <ellipse cx="100" cy="205" rx="54" ry="11" fill="rgba(0,0,0,0.18)"/>
-              <!-- feet -->
-              <ellipse cx="80" cy="192" rx="14" ry="9" fill="var(--soot-d)"/>
-              <ellipse cx="120" cy="192" rx="14" ry="9" fill="var(--soot-d)"/>
-              <!-- arms -->
-              <path class="arm-l" d="M46,150 q-22,4 -30,-12 q16,-4 30,-2 z" fill="var(--soot-l)"/>
-              <path class="arm-r" d="M154,150 q22,4 30,-12 q-16,-4 -30,-2 z" fill="var(--soot-l)"/>
-              <!-- body blob with little soot tufts -->
-              <path d="M100,32
-                       C72,28 66,20 60,26 C56,30 62,40 60,44
-                       C40,52 28,74 28,104
-                       C28,152 56,190 100,190
-                       C144,190 172,152 172,104
-                       C172,74 160,52 140,44
-                       C138,40 144,30 140,26 C134,20 128,28 100,32 Z"
-                    fill="var(--soot)"/>
-              <!-- soft belly sheen -->
-              <ellipse cx="100" cy="120" rx="46" ry="52" fill="rgba(255,255,255,0.04)"/>
-              <!-- gat (traditional hat) -->
-              <g opacity="0.92" transform="rotate(-7 100 40)">
-                <ellipse cx="100" cy="42" rx="52" ry="11" fill="rgba(20,18,26,0.55)" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
-                <path d="M78,42 q0,-24 22,-24 q22,0 22,24 z" fill="rgba(30,26,38,0.7)"/>
-                <ellipse cx="100" cy="18" rx="22" ry="5" fill="rgba(40,34,52,0.75)"/>
+              <ellipse cx="100" cy="206" rx="50" ry="10" fill="rgba(0,0,0,0.22)"/>
+
+              <!-- 까만 그을음 실루엣 (거친 삼베/그을음 질감) -->
+              <g filter="url(#roughen)">
+                <ellipse cx="84" cy="201" rx="13" ry="8" fill="var(--soot-d)"/>
+                <ellipse cx="116" cy="201" rx="13" ry="8" fill="var(--soot-d)"/>
+                <!-- 몸통(까만 두루마기) -->
+                <path d="M60,200 C52,172 55,142 67,128 C79,116 121,116 133,128 C145,142 148,172 140,200 Z" fill="var(--soot)"/>
+                <!-- 소매/팔 -->
+                <path d="M70,140 C60,150 62,164 84,160 C92,158 92,148 85,143 Z" fill="var(--soot-l)"/>
+                <path d="M130,140 C140,150 138,164 116,160 C108,158 108,148 115,143 Z" fill="var(--soot-l)"/>
+                <!-- 두건(cowl) -->
+                <ellipse cx="100" cy="92" rx="47" ry="49" fill="var(--soot)"/>
+                <!-- 쫑긋한 두 귀 -->
+                <ellipse cx="73" cy="50" rx="10" ry="13" fill="var(--soot)" transform="rotate(-18 73 50)"/>
+                <ellipse cx="127" cy="50" rx="10" ry="13" fill="var(--soot)" transform="rotate(18 127 50)"/>
               </g>
 
-              <!-- eyes -->
-              <g class="eye eye-left">
-                <ellipse class="eye-white" cx="80" cy="112" rx="16" ry="19" fill="#fdfcf7"/>
-                <circle class="pupil" cx="83" cy="115" r="9" fill="#1c1a24"/>
-                <circle class="eye-shine" cx="79" cy="109" r="3.2" fill="#fff"/>
-                <rect class="eyelid" x="63" y="92" width="34" height="21" rx="10" fill="var(--soot)"/>
+              <!-- 크림빛 삼베 얼굴 -->
+              <ellipse cx="100" cy="98" rx="39" ry="40" fill="var(--face)"/>
+              <g clip-path="url(#faceClip)">
+                <ellipse cx="100" cy="98" rx="39" ry="40" fill="var(--face-2)" filter="url(#facegrain)" opacity="0.6"/>
+                <ellipse cx="100" cy="150" rx="44" ry="24" fill="rgba(70,50,25,0.14)"/>
+                <ellipse cx="88" cy="80" rx="20" ry="16" fill="rgba(255,250,235,0.18)"/>
               </g>
-              <g class="eye eye-right">
-                <ellipse class="eye-white" cx="120" cy="112" rx="16" ry="19" fill="#fdfcf7"/>
-                <circle class="pupil" cx="117" cy="115" r="9" fill="#1c1a24"/>
-                <circle class="eye-shine" cx="116" cy="109" r="3.2" fill="#fff"/>
-                <rect class="eyelid" x="103" y="92" width="34" height="21" rx="10" fill="var(--soot)"/>
+              <ellipse cx="100" cy="98" rx="39" ry="40" fill="none" stroke="rgba(0,0,0,0.10)" stroke-width="1"/>
+
+              <!-- 커다란 까만 단추눈 -->
+              <g class="eye">
+                <circle class="pupil" cx="84" cy="96" r="11" fill="#161318"/>
+                <circle class="eye-shine" cx="80" cy="92" r="3" fill="#fff" opacity="0.85"/>
+                <rect class="eyelid" x="71" y="83" width="26" height="26" rx="12" fill="var(--face)"/>
+              </g>
+              <g class="eye">
+                <circle class="pupil" cx="116" cy="96" r="11" fill="#161318"/>
+                <circle class="eye-shine" cx="112" cy="92" r="3" fill="#fff" opacity="0.85"/>
+                <rect class="eyelid" x="103" y="83" width="26" height="26" rx="12" fill="var(--face)"/>
               </g>
 
-              <!-- cheeks -->
-              <ellipse cx="62" cy="138" rx="9" ry="6" fill="rgba(224,90,107,0.45)"/>
-              <ellipse cx="138" cy="138" rx="9" ry="6" fill="rgba(224,90,107,0.45)"/>
+              <!-- 입 (삼베에 살짝 꿰맨 듯 · 상태별) -->
+              <line class="m-flat" x1="94" y1="116" x2="106" y2="116" stroke="#4a3826" stroke-width="2" stroke-linecap="round"/>
+              <path class="m-smile" d="M93,114 q7,6 14,0" stroke="#4a3826" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+              <ellipse class="m-open" cx="100" cy="118" rx="6" ry="5" fill="#3a1e22"/>
+              <circle class="m-o" cx="100" cy="118" r="4" fill="#3a1e22"/>
+              <path class="m-grin" d="M92,114 l4,5 4,-5 4,5 4,-5" stroke="#4a3826" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <path class="m-sleepm" d="M95,116 q5,4 10,0" stroke="#4a3826" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <path class="m-sad" d="M93,121 q7,-7 14,0" stroke="#4a3826" stroke-width="2.2" fill="none" stroke-linecap="round"/>
 
-              <!-- mouths -->
-              <path class="m-smile" d="M88,142 q12,12 24,0" stroke="#1c1a24" stroke-width="3" fill="none" stroke-linecap="round"/>
-              <ellipse class="m-open" cx="100" cy="146" rx="10" ry="8" fill="#3a1e28"/>
-              <circle class="m-o" cx="100" cy="146" r="6" fill="#3a1e28"/>
-              <line class="m-flat" x1="90" y1="146" x2="110" y2="146" stroke="#1c1a24" stroke-width="3" stroke-linecap="round"/>
-              <path class="m-grin" d="M86,142 l6,7 6,-7 6,7 6,-7 6,7" stroke="#1c1a24" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              <path class="m-sleepm" d="M92,146 q8,5 16,0" stroke="#1c1a24" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              <path class="m-sad" d="M88,150 q12,-10 24,0" stroke="#1c1a24" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <!-- 공손히 모은 두 손 -->
+              <g>
+                <ellipse cx="92" cy="158" rx="12" ry="13" fill="var(--face)" stroke="rgba(0,0,0,0.10)" stroke-width="0.8"/>
+                <ellipse cx="108" cy="158" rx="12" ry="13" fill="var(--face-2)" stroke="rgba(0,0,0,0.10)" stroke-width="0.8"/>
+                <path d="M100,148 v20" stroke="rgba(70,50,25,0.28)" stroke-width="1.2"/>
+              </g>
 
               <!-- overlays -->
               <g class="ov ov-snack">
